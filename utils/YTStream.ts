@@ -6,7 +6,7 @@ import {PathLike, createWriteStream} from "node:fs";
 
 export interface Format {
   readonly container: string;
-  readonly audioEncoding:any;
+  readonly audioEncoding: string | null;
 }
 
 export interface Options extends ytdl.downloadOptions {
@@ -18,18 +18,18 @@ export interface Options extends ytdl.downloadOptions {
 
 const streamYT = (uri: string, opt: Options) => {
   if (!uri) throw new TypeError("youtube url not specified");
-  opt = {
+  const options = {
     ...opt,
     videoFormat: "mp4",
     quality: "lowest",
     audioFormat: "mp3",
     filter(format: Format) {
-      return format.container === opt.videoFormat && format.audioBitrate;
+      return format.container === options.videoFormat && format.audioBitrate;
     },
   };
 
-  const video = ytdl(uri, opt);
-  const { file, audioFormat } = opt;
+  const video = ytdl(uri, options);
+  const { file, audioFormat } = options;
   const stream = file ? createWriteStream(file) : new streamLib.PassThrough();
   const ffmpeg = FFmpeg(video);
 
