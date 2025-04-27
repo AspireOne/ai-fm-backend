@@ -1,7 +1,8 @@
 import {FastifyInstance} from "fastify";
+import {healthService} from "./services/health.service";
 
 export function setupRoutes(fastify: FastifyInstance) {
-  fastify.get('/ping', {}, async (request, reply) => {
-    return {pong: 'it worked!'}
+  fastify.get('/health', {}, async (request, reply) => {
+    return {health: healthService.getHealth()}
   })
 }
