@@ -7,6 +7,7 @@ import {PathLike, createWriteStream} from "node:fs";
 export interface Format {
   readonly container: string;
   readonly audioEncoding: string | null;
+  readonly audioBitrate: number | null;
 }
 
 export interface Options extends ytdl.downloadOptions {
