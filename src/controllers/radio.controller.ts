@@ -55,7 +55,7 @@ export function setupRadioRoutes(fastify: FastifyInstance) {
   fastify.get('/local-mp3', async (request, reply) => {
     try {
 
-      const filePath = path.join(__dirname, '../../FuckYou.mp3');
+      const filePath = path.join(__dirname, './FuckYou.mp3');
       console.log(filePath);
       // Check if the file exists and get its stats
       let fileStats;
