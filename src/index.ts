@@ -6,7 +6,7 @@ import {setupAppRoutes} from "./controllers/app.controller";
 
 dotenv.config();
 
-const PORT = Number(process.env["PORT"] ?? 3000);
+const PORT = Number(process.env["PORT"] ?? 5005);
 assert(Number.isInteger(PORT));
 
 const fastify = Fastify({
