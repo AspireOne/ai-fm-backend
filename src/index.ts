@@ -2,6 +2,7 @@
 import dotenv from 'dotenv'
 import Fastify from 'fastify'
 import assert from "node:assert";
+import {setupRoutes} from "./routes";
 
 dotenv.config();
 
@@ -19,8 +20,10 @@ fastify.get('/', async function handler(request, reply) {
 
 // Run the server!
 try {
+  
   console.log(`Running server on port ${PORT}...`);
-  await fastify.listen({port: PORT})
+  setupRoutes(fastify);
+  await fastify.listen({port: PORT});
 } catch (err) {
   fastify.log.error(err)
   process.exit(1)
