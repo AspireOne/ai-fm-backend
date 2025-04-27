@@ -7,7 +7,7 @@ import {setupAppRoutes} from "./controllers/app.controller";
 
 dotenv.config();
 
-const PORT = Number(process.env["PORT"] ?? 5006);
+const PORT = Number(process.env["PORT"] ?? 5000);
 assert(Number.isInteger(PORT));
 
 const fastify = Fastify({
@@ -16,7 +16,7 @@ const fastify = Fastify({
 
 
 await fastify.register(cors, {
-  origin: 'http://localhost:3001'
+  origin: 'http://localhost:3000'
 });
 
 const startServer = async () => {
