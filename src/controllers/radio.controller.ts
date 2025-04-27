@@ -6,23 +6,25 @@ import {FastifyInstance} from "fastify";
 import {RadioState} from "../types/radio-state.type";
 import { stat} from 'fs/promises';
 import * as fs from "node:fs";
+import { ensureAudioDir, ensureAudioFile } from "../utils/checkAudioDir";
 
-
-const MP3_FILE_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), './FuckYou.mp3');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const AUDIO_DIR = path.join(__dirname, '../audio');
 const statAsync = promisify(fs.stat);
 
 export function setupRadioRoutes(fastify: FastifyInstance) {
-  fastify.get('/local-mp3', async (request, reply) => {
-    try {
-      // Get file stats to determine size
-      const fileStats = await statAsync(MP3_FILE_PATH);
+  ensureAudioDir(AUDIO_DIR);
 
-      // Set appropriate headers for streaming audio
+  fastify.get('/stream', async (request, reply) => {
+    try {
+      const songDir = AUDIO_DIR+"/HUH.mp3";
+      await ensureAudioFile("https://www.youtube.com/watch?v=GuJQSAiODqI", "HUH", AUDIO_DIR);
+      const fileStats = await statAsync(songDir);
+
       reply.header('Content-Type', 'audio/mpeg');
       reply.header('Content-Length', fileStats.size);
       reply.header('Accept-Ranges', 'bytes');
 
-      // Handle range requests (important for seeking within audio)
       const range = request.headers.range;
 
       if (range) {
@@ -30,20 +32,16 @@ export function setupRadioRoutes(fastify: FastifyInstance) {
         const start = parseInt(parts[0], 10);
         const end = parts[1] ? parseInt(parts[1], 10) : fileStats.size - 1;
 
-        // Calculate chunk size
         const chunkSize = (end - start) + 1;
 
-        // Set range-specific headers
         reply.header('Content-Range', `bytes ${start}-${end}/${fileStats.size}`);
         reply.header('Content-Length', chunkSize);
         reply.status(206); // Partial Content
 
-        // Create and pipe the stream for the specific range
-        const stream = createReadStream(MP3_FILE_PATH, { start, end });
+        const stream = createReadStream(songDir, { start, end });
         return reply.send(stream);
       } else {
-        // Stream the entire file
-        const stream = createReadStream(MP3_FILE_PATH);
+        const stream = createReadStream(songDir);
         return reply.send(stream);
       }
 
