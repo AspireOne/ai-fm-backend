@@ -1,7 +1,7 @@
 import {FastifyInstance} from "fastify";
 import {healthService} from "../services/health.service";
 import {setupRadioRoutes} from "./radio.controller";
-import {setupRealRadioRoutes} from "./real-radio.controller";
+import {setupRealRadiosRoutes} from "./real-radios.controller";
 
 /**
  * The main controller - export all routes from here.
@@ -15,5 +15,5 @@ export function setupAppRoutes(fastify: FastifyInstance) {
     return {health: healthService.getHealth()}
   })
   setupRadioRoutes(fastify);
-  setupRealRadioRoutes(fastify);
+  setupRealRadiosRoutes(fastify);
 }

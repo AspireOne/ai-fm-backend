@@ -21,13 +21,13 @@
     "test": "echo ok",
     "prepare": "husky",
     "db:sync": "kysely-codegen --dialect postgres",
-    "migrate": "tsx src/db/migrate-latest.ts && pnpm db:sync",
-    "migrate:create": "tsx src/db/migrate-cli.ts create",
-    "migrate:redo": "tsx src/db/migrate-cli.ts redo && pnpm db:sync",
-    "migrate:rollback": "tsx src/db/migrate-cli.ts down-to && pnpm db:sync",
-    "migrate:latest": "tsx src/db/migrate-cli.ts latest && pnpm db:sync",
-    "migrate:up": "tsx src/db/migrate-cli.ts up && pnpm db:sync",
-    "migrate:down": "tsx src/db/migrate-cli.ts down && pnpm db:sync"
+    "migrate": "npx tsx src/db/migrate-latest.ts && pnpm db:sync",
+    "migrate:create": "npx tsx src/db/migrate-cli.ts create",
+    "migrate:redo": "npx tsx src/db/migrate-cli.ts redo && pnpm db:sync",
+    "migrate:rollback": "npx tsx src/db/migrate-cli.ts down-to && pnpm db:sync",
+    "migrate:latest": "npx tsx src/db/migrate-cli.ts latest && pnpm db:sync",
+    "migrate:up": "npx tsx src/db/migrate-cli.ts up && pnpm db:sync",
+    "migrate:down": "npx tsx src/db/migrate-cli.ts down && pnpm db:sync"
   },
   "keywords": [],
   "author": "",
@@ -42,6 +42,7 @@
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
     "dotenv": "^16.5.0",
+    "elevenlabs": "^1.57.0",
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",
     "fastify": "^5.3.2",
@@ -54,7 +55,6 @@
     "pg": "^8.15.6",
     "prettier": "^3.5.3",
     "stream": "^0.0.3",
-    "tsx": "^10.9.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.31.0",
     "ytdl-core": "^4.11.5"
@@ -62,7 +62,6 @@
   "devDependencies": {
     "@types/node": "^22.15.2",
     "husky": "^9.1.7",
-    "kysely-codegen": "^0.18.3",
-    "tsx": "^4.19.3"
+    "kysely-codegen": "^0.18.3"
   }
 }
