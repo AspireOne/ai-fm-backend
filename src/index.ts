@@ -19,12 +19,29 @@ await fastify.register(cors, {
   origin: 'http://localhost:3001'
 });
 
-try {
-  console.log(`Initializing routes...`);
-  setupAppRoutes(fastify);
-  console.log(`Running server on port ${PORT}...`);
-  await fastify.listen({port: PORT});
-} catch (err) {
-  fastify.log.error(err)
-  process.exit(1)
-}
+const startServer = async () => {
+  try {
+    console.log(`Initializing routes...`);
+    setupAppRoutes(fastify);
+    console.log(`Running server on port ${PORT}...`);
+    await fastify.listen({ port: PORT });
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+};
+
+const shutdownServer = async () => {
+  try {
+    console.log('Shutting down server...');
+    await fastify.close();
+    console.log('Server closed.');
+  } catch (err) {
+    fastify.log.error('Error during server shutdown:', err);
+  }
+};
+
+process.on('SIGINT', shutdownServer);
+process.on('SIGTERM', shutdownServer);
+
+startServer();
