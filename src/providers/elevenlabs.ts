@@ -7,8 +7,14 @@ export const elevenlabs = new ElevenLabsClient({
 
 /* Example:
 const audio = await elevenlabs.generate({
-    voice: "Sarah",
-    text: "Hello! 你好! Hola! नमस्ते! Bonjour! こんにちは! مرحبا! 안녕하세요! Ciao! Cześć! Привіт! வணக்கம்!",
-    model_id: "eleven_multilingual_v2",
+  voice: "Cara",
+  text: "I am become death. The destroyer of world. Shimi shimi shimi sama yo.",
+  model_id: "eleven_turbo_v2_5",
+  voice_settings: {
+    stability: 0.32,
+    similarity_boost: 0.87,
+    // style: 0.2 // consumes additional resources
+  }
 });
+
 * */

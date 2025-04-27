@@ -1,14 +1,14 @@
-function createRadio() {
+async function skipNext(radioId: string) {
 }
 
-function getRadioState() {
+async function skipPrevious(radioId: string) {
 }
 
-function getRadios() {
+async function togglePlay(radioId: string) {
 }
 
 export const realRadioService = {
-  createRadio,
-  getRadioState,
-  getRadios,
+  skipNext,
+  skipPrevious,
+  togglePlay,
 };

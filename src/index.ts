@@ -3,10 +3,11 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors';
 import {setupAppRoutes} from "./controllers/app.controller";
 import {env, validateEnv} from "./providers/env";
+import {validatePredefinedPathsExistOrThrow} from "./providers/paths";
 
 dotenv.config();
 validateEnv(env);
-
+await validatePredefinedPathsExistOrThrow();
 const fastify = Fastify({
   logger: true
 })

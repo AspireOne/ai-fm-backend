@@ -4,7 +4,7 @@ import {Kysely, Migrator, FileMigrationProvider} from "kysely";
 import {DB} from "kysely-codegen";
 import * as dotenv from "dotenv";
 import {kyselyDialect} from "../providers/kysely-dialect";
-import {Paths} from "../helpers/paths";
+import {Paths} from "../providers/paths";
 
 dotenv.config();
 
