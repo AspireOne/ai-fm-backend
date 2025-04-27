@@ -12,15 +12,17 @@ const ensureAudioDir = async (dir: string): Promise<void> => {
 
 const ensureAudioFile = async (youtubeUrl: string, id: string, dir: string): Promise<string> => {
 
+  const filePath = `${dir}/${id}.mp3`;
+
   try {
-    await access(dir)
-    console.log(`File ${id}.mp3 already exists.`);
-    return dir;
+    await access(filePath)
+    console.log(`File ${filePath} already exists.`);
+    return filePath;
   } catch (error) {
     console.log(`Downloading ${id}.mp3 from YouTube...`);
 
     return new Promise<string>((resolve, reject) => {
-      const writeStream = fs.createWriteStream(dir);
+      const writeStream = fs.createWriteStream(filePath);
 
       ytdl(youtubeUrl, {
         filter: 'audioonly',
