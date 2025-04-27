@@ -1,3 +1,4 @@
+import path from 'path';
 import {FastifyInstance} from "fastify";
 import {RadioState} from "../types/radio-state.type";
 import streamify from "../../utils/YTStream";
@@ -54,7 +55,7 @@ export function setupRadioRoutes(fastify: FastifyInstance) {
   fastify.get('/local-mp3', async (request, reply) => {
     try {
 
-      const filePath = "./src/FuckYou.mp3";
+      const filePath = path.join(__dirname, '../../FuckYou.mp3');
       console.log(filePath);
       // Check if the file exists and get its stats
       let fileStats;
