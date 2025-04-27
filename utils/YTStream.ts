@@ -16,14 +16,14 @@ export interface Options extends ytdl.downloadOptions {
 }
 
 
-const streamYT = (uri:string, opt:any) => {
+const streamYT = (uri: string, opt: Options) => {
   if (!uri) throw new TypeError("youtube url not specified");
   opt = {
     ...opt,
     videoFormat: "mp4",
     quality: "lowest",
     audioFormat: "mp3",
-    filter(format:any) {
+    filter(format: Format) {
       return format.container === opt.videoFormat && format.audioBitrate;
     },
   };
@@ -36,8 +36,8 @@ const streamYT = (uri:string, opt:any) => {
   process.nextTick(() => {
     const output = ffmpeg.format(audioFormat).pipe(stream);
 
-    ffmpeg.once("error", (error) => stream.emit("error", error));
-    output.once("error", (error) => {
+    ffmpeg.once("error", (error: Error) => stream.emit("error", error));
+    output.once("error", (error: Error) => {
       video.end();
       stream.emit("error", error);
     });
