@@ -8,6 +8,7 @@ const PROJECT_ROOT = detectProjectRoot();
 export const Paths = {
   projectRoot: PROJECT_ROOT,
   resourcesDir: join(PROJECT_ROOT, "src", "resources"),
+  sweepersDir: join(PROJECT_ROOT, "src", "resources", "sweepers"),
   migrationsDir: join(PROJECT_ROOT, "migrations"),
   // ... other paths
 } as const;
