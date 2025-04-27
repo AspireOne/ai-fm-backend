@@ -2,7 +2,7 @@
 import dotenv from 'dotenv'
 import Fastify from 'fastify'
 import assert from "node:assert";
-import {setupRoutes} from "./routes";
+import {setupAppRoutes} from "./controllers/app.controller";
 
 dotenv.config();
 
@@ -13,16 +13,10 @@ const fastify = Fastify({
   logger: true
 })
 
-// Declare a route
-fastify.get('/', async function handler(request, reply) {
-  return {hello: 'world'}
-})
-
-// Run the server!
 try {
-  
+  console.log(`Initializing routes...`);
+  setupAppRoutes(fastify);
   console.log(`Running server on port ${PORT}...`);
-  setupRoutes(fastify);
   await fastify.listen({port: PORT});
 } catch (err) {
   fastify.log.error(err)
