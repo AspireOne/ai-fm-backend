@@ -18,14 +18,26 @@
     "format-staged": "prettier $(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\\\ |g') --write --ignore-unknown",
     "lint": "eslint ",
     "lint:fix": "eslint --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@eslint/js": "^9.25.1",
+    "@types/configstore": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "^8.31.0",
+    "@typescript-eslint/parser": "^8.31.0",
     "dotenv": "^16.5.0",
+    "eslint": "^9.25.1",
+    "eslint-config-prettier": "^10.1.2",
     "openai": "^4.96.0",
-    "typescript": "^5.8.3"
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.31.0"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
   }
 }
