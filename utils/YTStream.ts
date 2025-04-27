@@ -1,53 +1,30 @@
-import * as ytdl from "ytdl-core";
-import * as streamLib from "stream";
-import * as FFmpeg from "fluent-ffmpeg";
-import {PathLike, createWriteStream} from "node:fs";
+import ytdl from "@distube/ytdl-core";
+import {Readable } from "stream";
 
-
-export interface Format {
-  readonly container: string;
-  readonly audioEncoding: string | null;
-  readonly audioBitrate: number | null;
+interface StreamifyOptions {
+  videoFormat?: string;
+  quality?: string;
+  audioFormat?: string;
+  file?: string;
+  filter?: (format: ytdl.videoFormat) => boolean;
 }
 
-export interface Options extends ytdl.downloadOptions {
-  readonly file?: PathLike;
-  readonly videoFormat?: string;
-  readonly audioFormat?: string;
-}
+const streamify = async (uri: string, userOpt?: StreamifyOptions): Promise<Readable> => {
+  const info = await ytdl.getInfo(uri);
+  const audioFormat = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
 
+  if (!audioFormat) {
+    throw Error('404 | No audio format found');
+  }
 
-const streamYT = (uri: string, opt: Options) => {
-  if (!uri) throw new TypeError("youtube url not specified");
-  const options = {
-    ...opt,
-    videoFormat: "mp4",
-    quality: "lowest",
-    audioFormat: "mp3",
-    filter(format: Format) {
-      return format.container === options.videoFormat && format.audioBitrate;
-    },
-  };
+  const stream = ytdl(uri, { format: audioFormat });
 
-  const video = ytdl(uri, options);
-  const { file, audioFormat } = options;
-  const stream = file ? createWriteStream(file) : new streamLib.PassThrough();
-  const ffmpeg = FFmpeg(video);
-
-  process.nextTick(() => {
-    const output = ffmpeg.format(audioFormat).pipe(stream);
-
-    ffmpeg.once("error", (error: Error) => stream.emit("error", error));
-    output.once("error", (error: Error) => {
-      video.end();
-      stream.emit("error", error);
-    });
+  stream.on('error', (err) => {
+    console.error('Stream error:', err);
+    throw err;
   });
-
-  stream.video = video;
-  stream.ffmpeg = ffmpeg;
-
   return stream;
-};
+}
 
-export default streamYT;
+
+export default streamify;
