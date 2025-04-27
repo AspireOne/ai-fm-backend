@@ -1,11 +1,11 @@
 // import dotenv
 import dotenv from 'dotenv'
 import Fastify from 'fastify'
-import * as assert from "node:assert";
+import assert from "node:assert";
 
 dotenv.config();
 
-const PORT = process.env["PORT"] as unknown as number ?? 3000;
+const PORT = Number(process.env["PORT"] ?? 3000);
 assert(Number.isInteger(PORT));
 
 const fastify = Fastify({
