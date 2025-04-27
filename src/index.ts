@@ -1,6 +1,7 @@
 // import dotenv
 import dotenv from 'dotenv'
 import Fastify from 'fastify'
+import cors from '@fastify/cors';
 import assert from "node:assert";
 import {setupAppRoutes} from "./controllers/app.controller";
 
@@ -13,7 +14,9 @@ const fastify = Fastify({
   logger: true
 })
 
-try {
+await fastify.register(cors, {
+  origin: 'http://localhost:3001'
+});
   console.log(`Initializing routes...`);
   setupAppRoutes(fastify);
   console.log(`Running server on port ${PORT}...`);
