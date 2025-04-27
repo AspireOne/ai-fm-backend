@@ -1,19 +1,15 @@
-// import dotenv
 import dotenv from 'dotenv'
 import Fastify from 'fastify'
 import cors from '@fastify/cors';
-import assert from "node:assert";
 import {setupAppRoutes} from "./controllers/app.controller";
+import {env, validateEnv} from "./providers/env";
 
 dotenv.config();
-
-const PORT = Number(process.env["PORT"] ?? 5000);
-assert(Number.isInteger(PORT));
+validateEnv(env);
 
 const fastify = Fastify({
   logger: true
 })
-
 
 await fastify.register(cors, {
   origin: 'http://localhost:3000'
@@ -23,8 +19,9 @@ const startServer = async () => {
   try {
     console.log(`Initializing routes...`);
     setupAppRoutes(fastify);
-    console.log(`Running server on port ${PORT}...`);
-    await fastify.listen({ port: PORT });
+
+    console.log(`Running server on port ${env.PORT}...`);
+    await fastify.listen({port: env.PORT});
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

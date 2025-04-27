@@ -19,7 +19,15 @@
     "lint": "eslint ",
     "lint:fix": "eslint --fix",
     "test": "echo ok",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:sync": "kysely-codegen --dialect postgres",
+    "migrate": "tsx src/db/migrate-latest.ts && pnpm db:sync",
+    "migrate:create": "tsx src/db/migrate-cli.ts create",
+    "migrate:redo": "tsx src/db/migrate-cli.ts redo && pnpm db:sync",
+    "migrate:rollback": "tsx src/db/migrate-cli.ts down-to && pnpm db:sync",
+    "migrate:latest": "tsx src/db/migrate-cli.ts latest && pnpm db:sync",
+    "migrate:up": "tsx src/db/migrate-cli.ts up && pnpm db:sync",
+    "migrate:down": "tsx src/db/migrate-cli.ts down && pnpm db:sync"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +38,7 @@
     "@fastify/cors": "^11.0.1",
     "@types/configstore": "^6.0.2",
     "@types/fluent-ffmpeg": "^2.1.27",
+    "@types/pg": "^8.11.14",
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
     "dotenv": "^16.5.0",
@@ -38,15 +47,22 @@
     "fastify": "^5.3.2",
     "ffmpeg": "^0.0.4",
     "fluent-ffmpeg": "^2.1.3",
+    "kysely": "^0.28.2",
+    "kysely-migration-cli": "^0.4.2",
+    "mysql2": "^3.14.1",
     "openai": "^4.96.0",
+    "pg": "^8.15.6",
     "prettier": "^3.5.3",
     "stream": "^0.0.3",
+    "tsx": "^10.9.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.31.0",
     "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
     "@types/node": "^22.15.2",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "kysely-codegen": "^0.18.3",
+    "tsx": "^4.19.3"
   }
 }
