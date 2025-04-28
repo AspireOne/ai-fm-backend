@@ -4,3 +4,6 @@ dist
 .aider*
 .env
 /.idea*
+downloaded_files
+downloaded_files/
+/downloaded_files*
