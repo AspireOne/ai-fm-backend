@@ -1,11 +1,11 @@
 import * as path from "path";
-import {existsSync, promises as fs} from "fs";
-import {FileMigrationProvider, Kysely, Migrator} from "kysely";
-import {run} from "kysely-migration-cli";
-import {DB} from "kysely-codegen";
+import { existsSync, promises as fs } from "fs";
+import { FileMigrationProvider, Kysely, Migrator } from "kysely";
+import { run } from "kysely-migration-cli";
+import { DB } from "kysely-codegen";
 import * as dotenv from "dotenv";
-import {kyselyDialect} from "../providers/kysely-dialect";
-import {Paths} from "../providers/paths";
+import { kyselyDialect } from "../providers/kysely-dialect";
+import { Paths } from "../providers/paths";
 
 dotenv.config();
 

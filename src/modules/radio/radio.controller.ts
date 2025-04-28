@@ -1,45 +1,45 @@
-import {FastifyInstance} from "fastify";
+import { FastifyInstance } from "fastify";
 import * as assert from "node:assert";
 import radioService from "./radio.service";
 
 export function registerRadioController(fastify: FastifyInstance) {
   // Radio control routes with dynamic ID parameter
-  fastify.post('/radios/:id/next', async (request, reply) => {
-    const {id} = request.params as { id: string };
+  fastify.post("/radios/:id/next", async (request, reply) => {
+    const { id } = request.params as { id: string };
     assert(id);
 
     try {
       return await radioService.skipNext(id);
-      return {success: true, message: `Next track for radio ${id}`};
+      return { success: true, message: `Next track for radio ${id}` };
     } catch (error) {
       reply.code(400);
-      return {success: false, error: (error as Error).message};
+      return { success: false, error: (error as Error).message };
     }
   });
 
-  fastify.post('/radios/:id/previous', async (request, reply) => {
-    const {id} = request.params as { id: string };
+  fastify.post("/radios/:id/previous", async (request, reply) => {
+    const { id } = request.params as { id: string };
     assert(id);
 
     try {
       await radioService.skipPrevious(id);
-      return {success: true, message: `Previous track for radio ${id}`};
+      return { success: true, message: `Previous track for radio ${id}` };
     } catch (error) {
       reply.code(400);
-      return {success: false, error: (error as Error).message};
+      return { success: false, error: (error as Error).message };
     }
   });
 
-  fastify.post('/radios/:id/toggle-play', async (request, reply) => {
-    const {id} = request.params as { id: string };
+  fastify.post("/radios/:id/toggle-play", async (request, reply) => {
+    const { id } = request.params as { id: string };
     assert(id);
 
     try {
       await radioService.togglePlay(id);
-      return {success: true, message: `Toggled play state for radio ${id}`};
+      return { success: true, message: `Toggled play state for radio ${id}` };
     } catch (error) {
       reply.code(400);
-      return {success: false, error: (error as Error).message};
+      return { success: false, error: (error as Error).message };
     }
   });
 

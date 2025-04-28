@@ -1,7 +1,7 @@
-import {PostgresDialect} from "kysely";
-import {Pool} from "pg";
+import { PostgresDialect } from "kysely";
+import { Pool } from "pg";
 import * as dotenv from "dotenv";
-import {env} from "./env";
+import { env } from "./env";
 
 dotenv.config();
 
@@ -20,7 +20,7 @@ const pool = new Pool({
   keepAliveInitialDelayMillis: 20_000,
   maxLifetimeSeconds: 3600,
   allowExitOnIdle: true,
-  ssl: !USE_SSL ? false : {rejectUnauthorized: false},
+  ssl: !USE_SSL ? false : { rejectUnauthorized: false },
 });
 
 const kyselyDialect = new PostgresDialect({
@@ -31,4 +31,4 @@ pool.on("error", (err) => {
   console.error("Unexpected pool error", err);
 });
 
-export {pool, kyselyDialect};
+export { pool, kyselyDialect };

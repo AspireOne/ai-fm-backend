@@ -1,19 +1,19 @@
-import dotenv from 'dotenv'
-import Fastify from 'fastify'
-import cors from '@fastify/cors';
-import {registerAppController} from "./modules/app/app.controller";
-import {env, validateEnv} from "./providers/env";
-import {validatePredefinedPathsExistOrThrow} from "./providers/paths";
+import dotenv from "dotenv";
+import Fastify from "fastify";
+import cors from "@fastify/cors";
+import { registerAppController } from "./modules/app/app.controller";
+import { env, validateEnv } from "./providers/env";
+import { validatePredefinedPathsExistOrThrow } from "./providers/paths";
 
 dotenv.config();
 validateEnv(env);
 await validatePredefinedPathsExistOrThrow();
 const fastify = Fastify({
-  logger: true
-})
+  logger: true,
+});
 
 await fastify.register(cors, {
-  origin: '*'
+  origin: "*",
 });
 
 const startServer = async () => {
@@ -22,7 +22,7 @@ const startServer = async () => {
     registerAppController(fastify);
 
     console.log(`Running server on port ${env.PORT}...`);
-    await fastify.listen({port: env.PORT});
+    await fastify.listen({ port: env.PORT });
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
@@ -31,15 +31,15 @@ const startServer = async () => {
 
 const shutdownServer = async () => {
   try {
-    console.log('Shutting down server...');
+    console.log("Shutting down server...");
     await fastify.close();
-    console.log('Server closed.');
+    console.log("Server closed.");
   } catch (err) {
-    fastify.log.error('Error during server shutdown:', err);
+    fastify.log.error("Error during server shutdown:", err);
   }
 };
 
-process.on('SIGINT', shutdownServer);
-process.on('SIGTERM', shutdownServer);
+process.on("SIGINT", shutdownServer);
+process.on("SIGTERM", shutdownServer);
 
 startServer();

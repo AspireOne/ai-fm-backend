@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import {env} from "./env";
+import { env } from "./env";
 
 const client = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",

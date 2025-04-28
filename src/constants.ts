@@ -11,6 +11,6 @@ export const constants = {
       stability: 0.32,
       similarity_boost: 0.87,
       // style: 0.2 // consumes additional resources
-    }
-  }
-}
+    },
+  },
+};

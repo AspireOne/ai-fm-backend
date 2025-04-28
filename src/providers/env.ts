@@ -20,6 +20,6 @@ export function validateEnv(environment: Record<string, unknown>): void {
   }
 
   if (missingVars.length > 0) {
-    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    throw new Error(`Missing required environment variables: ${missingVars.join(", ")}`);
   }
 }

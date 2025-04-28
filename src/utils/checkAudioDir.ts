@@ -10,12 +10,15 @@ const ensureAudioDir = async (dir: string): Promise<void> => {
   }
 };
 
-const ensureAudioFile = async (youtubeUrl: string, id: string, dir: string): Promise<string> => {
-
+const ensureAudioFile = async (
+  youtubeUrl: string,
+  id: string,
+  dir: string,
+): Promise<string> => {
   const filePath = `${dir}/${id}.mp3`;
 
   try {
-    await access(filePath)
+    await access(filePath);
     console.log(`File ${filePath} already exists.`);
     return filePath;
   } catch (error) {
@@ -25,15 +28,15 @@ const ensureAudioFile = async (youtubeUrl: string, id: string, dir: string): Pro
       const writeStream = fs.createWriteStream(filePath);
 
       ytdl(youtubeUrl, {
-        filter: 'audioonly',
-        quality: 'highestaudio',
+        filter: "audioonly",
+        quality: "highestaudio",
       })
         .pipe(writeStream)
-        .on('finish', () => {
+        .on("finish", () => {
           console.log(`Download complete: ${id}.mp3`);
           resolve(dir);
         })
-        .on('error', (err: Error) => {
+        .on("error", (err: Error) => {
           console.error(`Error downloading ${id}.mp3:`, err);
           reject(err);
         });
@@ -41,8 +44,4 @@ const ensureAudioFile = async (youtubeUrl: string, id: string, dir: string): Pro
   }
 };
 
-
-export {
-  ensureAudioDir,
-  ensureAudioFile
-}
+export { ensureAudioDir, ensureAudioFile };

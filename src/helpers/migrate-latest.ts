@@ -1,10 +1,10 @@
 import * as path from "path";
-import {promises as fs} from "fs";
-import {Kysely, Migrator, FileMigrationProvider} from "kysely";
-import {DB} from "kysely-codegen";
+import { promises as fs } from "fs";
+import { Kysely, Migrator, FileMigrationProvider } from "kysely";
+import { DB } from "kysely-codegen";
 import * as dotenv from "dotenv";
-import {kyselyDialect} from "../providers/kysely-dialect";
-import {Paths} from "../providers/paths";
+import { kyselyDialect } from "../providers/kysely-dialect";
+import { Paths } from "../providers/paths";
 
 dotenv.config();
 
@@ -26,7 +26,7 @@ async function migrateToLatest() {
     }),
   });
 
-  const {error, results} = await migrator.migrateToLatest();
+  const { error, results } = await migrator.migrateToLatest();
 
   results?.forEach((it) => {
     if (it.status === "Success") {

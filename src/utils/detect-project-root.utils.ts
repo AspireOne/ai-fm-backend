@@ -1,7 +1,7 @@
-import {join, sep, resolve} from "node:path";
-import {existsSync} from "node:fs";
-import path from 'path';
-import {fileURLToPath} from 'url';
+import { join, sep, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 let projectRoot: string | undefined;
 
@@ -40,6 +40,6 @@ export function detectProjectRoot(startDir: string = __dirname): string {
 
   throw new Error(
     `Failed to detect project root from ${normalizedStartDir}.\n` +
-    `Searched ${depth} levels up for: ${MARKERS.join(", ")}`,
+      `Searched ${depth} levels up for: ${MARKERS.join(", ")}`,
   );
 }
