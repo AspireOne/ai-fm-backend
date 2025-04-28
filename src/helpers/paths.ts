@@ -6,7 +6,7 @@ import { detectProjectRoot } from "../utils/detect-project-root.utils";
 const PROJECT_ROOT = detectProjectRoot();
 
 /** Pre-defined file/directory paths for the project. */
-export const Paths = {
+const MandatoryPaths = {
   /** Root directory of the project (where for example package.json resides). */
   projectRoot: PROJECT_ROOT,
   /** Directory that contains static resources. */
@@ -15,21 +15,26 @@ export const Paths = {
   sweepersDir: join(PROJECT_ROOT, "src", "resources", "sweepers"),
   /** DB Migrations directory. */
   migrationsDir: join(PROJECT_ROOT, "migrations"),
-  
+
   // ... other paths
 } as const;
 
 /** Pre-defined file/directory paths for the project. */
-export const OptionalPaths = {
+const OptionalPaths = {
   /** Directory that contains locally downloaded files not part of the project. */
   downloadedFilesDir: join(PROJECT_ROOT, "downloaded_files"),
-};
+} as const;
+
+export const Paths = {
+  ...MandatoryPaths,
+  ...OptionalPaths,
+} as const;
 
 /** Checks the existence of all pre-defined paths in Paths (not in OptionalPaths). */
 export const validatePredefinedPathsExistOrThrow = async (): Promise<void> => {
   const errors: Error[] = [];
 
-  const pathValidations = Object.entries(Paths).map(async ([key, path]) => {
+  const pathValidations = Object.entries(MandatoryPaths).map(async ([key, path]) => {
     try {
       await access(path, constants.R_OK);
       console.debug(`✓ Path "${key}" is valid: ${path}`);
