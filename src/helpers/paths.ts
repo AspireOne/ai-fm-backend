@@ -15,7 +15,8 @@ const MandatoryPaths = {
   sweepersDir: join(PROJECT_ROOT, "src", "resources", "sweepers"),
   /** DB Migrations directory. */
   migrationsDir: join(PROJECT_ROOT, "migrations"),
-
+  dbSchema: join(PROJECT_ROOT, "src", "db-schema.csv"),
+  dbSchemaQuerySql: join(PROJECT_ROOT, "src", "helpers", "get_database_schema.sql"),
   // ... other paths
 } as const;
 

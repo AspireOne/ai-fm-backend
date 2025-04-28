@@ -23,7 +23,7 @@
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
-    "db:sync": "kysely-codegen --dialect postgres",
+    "db:sync": "kysely-codegen --dialect postgres && npx tsx src/helpers/generate-db-schema.ts",
     "migrate": "npx tsx src/helpers/migrate-latest.ts && pnpm db:sync",
     "migrate:create": "npx tsx src/helpers/migrate-cli.ts create",
     "migrate:redo": "npx tsx src/helpers/migrate-cli.ts redo && pnpm db:sync",

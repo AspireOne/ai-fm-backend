@@ -1,0 +1,14 @@
+table_name,column_name,data_type,full_data_type,nullable,default_value,constraints
+kysely_migration,name,character varying,character varying(255),NOT NULL,,PRIMARY KEY
+kysely_migration,timestamp,character varying,character varying(255),NOT NULL,,
+kysely_migration_lock,id,character varying,character varying(255),NOT NULL,,PRIMARY KEY
+kysely_migration_lock,is_locked,integer,"integer(32,0)",NOT NULL,0,
+radios,id,uuid,uuid,NOT NULL,gen_random_uuid(),PRIMARY KEY
+radios,title,character varying,character varying(255),NOT NULL,,
+radios,description,character varying,character varying(255),NULL,,
+radios,created_at,timestamp with time zone,timestamp with time zone,NOT NULL,now(),
+radios,updated_at,timestamp with time zone,timestamp with time zone,NOT NULL,now(),
+radios,is_public,boolean,boolean,NOT NULL,true,
+songs,id,uuid,uuid,NOT NULL,gen_random_uuid(),PRIMARY KEY
+songs,radio_id,uuid,uuid,NOT NULL,,FOREIGN KEY
+songs,yt_url,character varying,character varying(255),NOT NULL,,

@@ -1,4 +1,15 @@
-echo "🔍 Running TypeScript check..."
-pnpm typecheck || exit 1
-prettier $(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g') --write --ignore-unknown || exit 1
-git update-index --again
+echo "🔍 Running checks in parallel..."
+# Run TypeScript check and Prettier in parallel
+(pnpm typecheck || exit 1) & 
+(prettier $(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g') --write --ignore-unknown || exit 1) &
+
+# Wait for all background processes to finish
+wait
+
+# Only update the index if all checks passed successfully
+if [ $? -eq 0 ]; then
+  git update-index --again
+  exit 0
+else
+  exit 1
+fi
