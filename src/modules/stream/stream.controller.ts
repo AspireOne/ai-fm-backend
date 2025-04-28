@@ -5,7 +5,7 @@ import { promisify } from "util";
 import { FastifyInstance } from "fastify";
 import * as fs from "node:fs";
 import { ensureAudioDir, ensureAudioFile } from "../../utils/checkAudioDir";
-import { OptionalPaths } from "../../providers/paths";
+import { OptionalPaths } from "../../helpers/paths";
 
 const AUDIO_DIR = OptionalPaths.downloadedFilesDir;
 const statAsync = promisify(fs.stat);

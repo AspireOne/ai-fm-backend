@@ -5,7 +5,7 @@ import { run } from "kysely-migration-cli";
 import { DB } from "kysely-codegen";
 import * as dotenv from "dotenv";
 import { kyselyDialect } from "../providers/kysely-dialect";
-import { Paths } from "../providers/paths";
+import { Paths } from "./paths";
 
 dotenv.config();
 

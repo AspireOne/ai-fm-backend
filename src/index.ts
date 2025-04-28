@@ -2,8 +2,8 @@ import dotenv from "dotenv";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { registerAppController } from "./modules/app/app.controller";
-import { env, validateEnv } from "./providers/env";
-import { validatePredefinedPathsExistOrThrow } from "./providers/paths";
+import { env, validateEnv } from "./helpers/env";
+import { validatePredefinedPathsExistOrThrow } from "./helpers/paths";
 
 dotenv.config();
 validateEnv(env);

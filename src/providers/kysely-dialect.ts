@@ -1,7 +1,7 @@
 import { PostgresDialect } from "kysely";
 import { Pool } from "pg";
 import * as dotenv from "dotenv";
-import { env } from "./env";
+import { env } from "../helpers/env";
 
 dotenv.config();
 
