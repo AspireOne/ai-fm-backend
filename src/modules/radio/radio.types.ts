@@ -12,3 +12,9 @@ export type RadioState = {
   hasPrev: boolean;
   playState: "loading" | "playing" | "paused" | "Stopped";
 };
+
+export type CreateRadioInput = {
+  name: string;
+  description: string;
+  songs: string[];
+};

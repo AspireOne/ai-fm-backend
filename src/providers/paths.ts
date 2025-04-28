@@ -18,12 +18,13 @@ export const Paths = {
   // ... other paths
 } as const;
 
-/** Pre-defined file/directory paths for the project that are valid even if they do NOT exist. */
+/** Pre-defined file/directory paths for the project. */
 export const OptionalPaths = {
   /** Directory that contains locally downloaded files not part of the project. */
-  downloadedFilesDir: join(PROJECT_ROOT, "downloaded-files"),
+  downloadedFilesDir: join(PROJECT_ROOT, "downloaded_files"),
 };
 
+/** Checks the existence of all pre-defined paths in Paths (not in OptionalPaths). */
 export const validatePredefinedPathsExistOrThrow = async (): Promise<void> => {
   const errors: Error[] = [];
 

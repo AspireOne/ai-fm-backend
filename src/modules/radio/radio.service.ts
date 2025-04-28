@@ -7,7 +7,7 @@ async function skipPrevious(radioId: string) {
 async function togglePlay(radioId: string) {
 }
 
-export const realRadioService = {
+export default {
   skipNext,
   skipPrevious,
   togglePlay,

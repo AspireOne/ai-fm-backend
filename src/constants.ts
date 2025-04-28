@@ -1,8 +1,10 @@
+/**
+ * Project-wide constants.
+ * Local / module-specific (/ feature-specific) constants should be in the appropriate module.
+ * */
 export const constants = {
   textModel: "google/gemini-2.0-flash-001",
-  voiceModel: "google/en-us-tts-flash-1",
-  caraModelId: "hHnrJOzNsJ6sL8T7aU6z",
-  cara: {
+  elevenlabsCara: {
     voice: "Cara",
     model_id: "eleven_turbo_v2_5",
     voice_settings: {

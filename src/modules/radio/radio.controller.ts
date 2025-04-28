@@ -1,15 +1,15 @@
 import {FastifyInstance} from "fastify";
-import {realRadioService} from "../services/real-radio.service";
 import * as assert from "node:assert";
+import radioService from "./radio.service";
 
-export function setupRealRadiosRoutes(fastify: FastifyInstance) {
+export function registerRadioController(fastify: FastifyInstance) {
   // Radio control routes with dynamic ID parameter
   fastify.post('/radios/:id/next', async (request, reply) => {
     const {id} = request.params as { id: string };
     assert(id);
 
     try {
-      await realRadioService.skipNext(id);
+      return await radioService.skipNext(id);
       return {success: true, message: `Next track for radio ${id}`};
     } catch (error) {
       reply.code(400);
@@ -22,7 +22,7 @@ export function setupRealRadiosRoutes(fastify: FastifyInstance) {
     assert(id);
 
     try {
-      await realRadioService.skipPrevious(id);
+      await radioService.skipPrevious(id);
       return {success: true, message: `Previous track for radio ${id}`};
     } catch (error) {
       reply.code(400);
@@ -35,7 +35,7 @@ export function setupRealRadiosRoutes(fastify: FastifyInstance) {
     assert(id);
 
     try {
-      await realRadioService.togglePlay(id);
+      await radioService.togglePlay(id);
       return {success: true, message: `Toggled play state for radio ${id}`};
     } catch (error) {
       reply.code(400);

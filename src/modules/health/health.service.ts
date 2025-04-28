@@ -5,6 +5,6 @@ function getHealth() {
   };
 }
 
-export const healthService = {
+export default {
   getHealth,
 };

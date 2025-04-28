@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import Fastify from 'fastify'
 import cors from '@fastify/cors';
-import {setupAppRoutes} from "./controllers/app.controller";
+import {registerAppController} from "./modules/app/app.controller";
 import {env, validateEnv} from "./providers/env";
 import {validatePredefinedPathsExistOrThrow} from "./providers/paths";
 
@@ -19,7 +19,7 @@ await fastify.register(cors, {
 const startServer = async () => {
   try {
     console.log(`Initializing routes...`);
-    setupAppRoutes(fastify);
+    registerAppController(fastify);
 
     console.log(`Running server on port ${env.PORT}...`);
     await fastify.listen({port: env.PORT});
