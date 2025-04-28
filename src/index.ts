@@ -6,11 +6,13 @@ import { env, validateEnv } from "./helpers/env";
 import { validatePredefinedPathsExistOrThrow } from "./helpers/paths";
 
 dotenv.config();
-validateEnv(env);
 
 const fastify = Fastify({
   logger: true,
 });
+
+validateEnv(env);
+
 const startServer = async () => {
   await validatePredefinedPathsExistOrThrow();
   await fastify.register(cors, {

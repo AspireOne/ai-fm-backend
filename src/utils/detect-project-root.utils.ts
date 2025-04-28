@@ -1,7 +1,5 @@
-import { join, sep, resolve } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { existsSync } from "node:fs";
-import path from "path";
-import { fileURLToPath } from "url";
 
 let projectRoot: string | undefined;
 

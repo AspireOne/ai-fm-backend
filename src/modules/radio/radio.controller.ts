@@ -31,6 +31,7 @@ export function registerRadioController(fastify: FastifyInstance) {
   });
 
   fastify.post("/radios/:id/toggle-play", async (request, reply) => {
+    throw new Error("Not implemented");
     const { id } = request.params as { id: string };
     assert.ok(id);
 
