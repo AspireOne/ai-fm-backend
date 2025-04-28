@@ -1,7 +1,7 @@
 {
-  "name": "ai-nonstop-fm",
+  "name": "ai-fm-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Non-stop pop FM! Backend",
   "main": "dist/index.js",
   "type": "module",
   "files": [
@@ -16,9 +16,8 @@
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
     "format-staged": "prettier $(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\\\ |g') --write --ignore-unknown",
-    "lint": "eslint ",
+    "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "test": "echo ok",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
     "db:sync": "kysely-codegen --dialect postgres",
