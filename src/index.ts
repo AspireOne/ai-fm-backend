@@ -7,16 +7,16 @@ import { validatePredefinedPathsExistOrThrow } from "./helpers/paths";
 
 dotenv.config();
 validateEnv(env);
-await validatePredefinedPathsExistOrThrow();
+
 const fastify = Fastify({
   logger: true,
 });
-
-await fastify.register(cors, {
-  origin: "*",
-});
-
 const startServer = async () => {
+  await validatePredefinedPathsExistOrThrow();
+  await fastify.register(cors, {
+    origin: "*",
+  });
+
   try {
     console.log(`Initializing routes...`);
     registerAppController(fastify);

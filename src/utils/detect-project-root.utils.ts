@@ -8,9 +8,6 @@ let projectRoot: string | undefined;
 const MARKERS = ["package.json", "nest-cli.json"] as const;
 const MAX_DEPTH = 10;
 
-const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
-const __dirname = path.dirname(__filename); // get
-
 export function detectProjectRoot(startDir: string = __dirname): string {
   if (projectRoot) return projectRoot;
 

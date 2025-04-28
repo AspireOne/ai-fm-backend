@@ -2,15 +2,18 @@
   "compilerOptions": {
     // Enable latest features
     "lib": ["ESNext", "dom"],
-    "target": "ESNext",
-    "module": "ESNext",
+    "declaration": true,
+    "removeComments": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "moduleDetection": "force",
-    "jsx": "react-jsx",
+    "sourceMap": true,
+    "baseUrl": "./",
+    "incremental": true,
+    "esModuleInterop": true,
     "allowJs": true,
-    // Bundler mode
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": false,
-    "verbatimModuleSyntax": false,
     // Best practices
     "strict": true,
     "skipLibCheck": true,
@@ -18,8 +21,7 @@
     // Some stricter flags
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": true,
-    "outDir": "dist"
+    "outDir": "./dist"
   },
   "exclude": ["node_modules"],
   // include src

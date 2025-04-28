@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "Non-stop pop FM! Backend",
   "main": "dist/index.js",
-  "type": "module",
   "files": [
     "dist"
   ],
+  "engines": {
+    "pnpm": "9.x",
+    "node": ">=22.0.0"
+  },
   "bin": {
     "fm": "dist/index.js"
   },

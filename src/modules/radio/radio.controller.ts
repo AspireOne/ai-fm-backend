@@ -1,12 +1,12 @@
 import { FastifyInstance } from "fastify";
-import * as assert from "node:assert";
 import radioService from "./radio.service";
+import * as assert from "node:assert";
 
 export function registerRadioController(fastify: FastifyInstance) {
   // Radio control routes with dynamic ID parameter
   fastify.post("/radios/:id/next", async (request, reply) => {
     const { id } = request.params as { id: string };
-    assert(id);
+    assert.ok(id);
 
     try {
       return await radioService.skipNext(id);
@@ -19,7 +19,7 @@ export function registerRadioController(fastify: FastifyInstance) {
 
   fastify.post("/radios/:id/previous", async (request, reply) => {
     const { id } = request.params as { id: string };
-    assert(id);
+    assert.ok(id);
 
     try {
       await radioService.skipPrevious(id);
@@ -32,7 +32,7 @@ export function registerRadioController(fastify: FastifyInstance) {
 
   fastify.post("/radios/:id/toggle-play", async (request, reply) => {
     const { id } = request.params as { id: string };
-    assert(id);
+    assert.ok(id);
 
     try {
       await radioService.togglePlay(id);
