@@ -13,7 +13,7 @@ const fastify = Fastify({
 })
 
 await fastify.register(cors, {
-  origin: 'http://localhost:3000'
+  origin: '*'
 });
 
 const startServer = async () => {
