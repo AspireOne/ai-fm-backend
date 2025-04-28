@@ -41,6 +41,17 @@ src/modules/[module]/
     - Follow naming pattern: `[name].dto.ts`
     - Contains types/schemas for route inputs/outputs, e.g. fastify schema definitions for controllers
 
+IMPORTANT:
+
+Again, a module can contain only a service. Services should be encapsulated within a module,
+and most logic should be contained in a service to follow encapsulation and single responsibility principles.
+
+### Exporting / naming
+
+- Controllers: Export only one function: register[Module]Controller (e.g. registerRadioController)
+- Services: Export only one DEFAULT, unnamed function, that contains all of the others: export default { functionA,
+  functionB, functionC... }
+
 ### Infrastructure components
 
 - **Providers**: Clients, external services, connections...
@@ -80,19 +91,6 @@ src/modules/[module]/
 
 - **migrations**: Database migrations
     - Contains database migrations (when running `pnpm migrate`, it will run these migrations)
-
-### Module Organization
-
-The application is organized into feature modules:
-
-- `app` - Main application controller, contains all other controllers
-- `radio` - Radio management functionality
-- `stream` - Audio streaming functionality
-
-Each module follows a consistent structure:
-src/modules/[module]/
-├── [module].controller.ts
-└── [module].service.ts
 
 ## Naming Conventions
 
