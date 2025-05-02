@@ -1,0 +1,46 @@
+import { useEffect, useRef } from 'react';
+import io from 'socket.io-client';
+
+const MusicPage = () => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const socketRef = useRef<SocketIOClient.Socket | null>(null);
+
+  useEffect(() => {
+    // Connect to the socket server
+    socketRef.current = io();
+
+    // Create an audio context
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createBufferSource();
+    const gainNode = audioContext.createGain();
+    gainNode.connect(audioContext.destination);
+
+    // Handle incoming audio chunks
+    socketRef.current.on('audioChunk', (chunk: ArrayBuffer) => {
+      audioContext.decodeAudioData(chunk, (buffer) => {
+        source.buffer = buffer;
+        source.connect(gainNode);
+        source.start(0);
+      });
+    });
+
+    // Clean up on component unmount
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
+
+  return (
+    <div>
+      <h1>Music Stream</h1>
+      <audio ref={audioRef} controls />
+    </div>
+  );
+};
+
+export default MusicPage;
