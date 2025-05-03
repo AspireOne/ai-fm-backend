@@ -1,7 +1,35 @@
 import { CreateRadioInputSchema } from "./schemas/create-radio-input.schema";
 import { db } from "../../providers/kysely";
-import { DbBlock } from "./radio.types";
+import { DbBlock, ParsedRadio } from "./radio.types";
 import { uuid } from "../../helpers/uuid";
+
+/**
+ * @throws Error if the radio is not found
+ * @param radioId
+ */
+async function getRadioOrThrow(radioId: string): Promise<ParsedRadio> {
+  const radio = await db
+    .selectFrom("radios")
+    .where("id", "=", radioId)
+    .select(["songs", "title", "description", "id"])
+    .executeTakeFirst();
+
+  if (!radio) {
+    throw new Error(`Radio with ID ${radioId} not found`);
+  }
+
+  // Parse the songs JSON
+  const blocks: DbBlock[] = JSON.parse(radio.songs as string);
+
+  const parsedRadio = {
+    ...radio,
+    songs: undefined,
+    blocks: blocks,
+  };
+
+  delete parsedRadio.songs;
+  return parsedRadio;
+}
 
 async function createRadio(props: CreateRadioInputSchema) {
   const feed = createFeed(props.songs);
@@ -73,5 +101,5 @@ function createFeed(songs: { url: string }[]): DbBlock[] {
 
 export default {
   createRadio,
-  createFeed,
+  getRadioOrThrow,
 };

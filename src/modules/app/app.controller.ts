@@ -1,7 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { registerRadioController } from "../radio/radio.controller";
 import { registerHealthController } from "../health/health.controller";
-import { registerStreamController } from "../stream/stream.controller";
+import { registerStreamController } from "../stream-example/stream-example.controller";
+import { registerWebSocketController } from "../websocket/websocket.controller";
 
 /**
  * The main controller - registers all other controllers.
@@ -14,4 +15,5 @@ export function registerAppController(fastify: FastifyInstance) {
   registerStreamController(fastify);
   registerHealthController(fastify);
   registerRadioController(fastify);
+  registerWebSocketController(fastify);
 }

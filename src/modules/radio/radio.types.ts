@@ -1,9 +1,13 @@
+import { Radios } from "kysely-codegen";
+
 type BlockType = "song" | "sweeper" | "input";
 /**
  * The state sent to the client using WS.
  */
 export type RadioState = {
   radioId: string;
+  radioTitle: string;
+  radioDescription?: string;
   block: {
     id: string;
     type: BlockType;
@@ -20,4 +24,11 @@ export type DbBlock = {
   type: BlockType;
   id: string;
   url?: string;
+};
+
+export type ParsedRadio = {
+  id: string;
+  description: string | null;
+  title: string;
+  blocks: DbBlock[];
 };

@@ -25,54 +25,57 @@ async function ensureAudioDirectory(): Promise<void> {
  * @param filename Filename to save as
  * @returns Path to the downloaded file
  */
-async function prepareSongForStreaming(youtubeUrl: string, filename: string): Promise<string> {
+async function prepareSongForStreaming(
+  youtubeUrl: string,
+  filename: string,
+): Promise<string> {
   const songPath = `${AUDIO_DIR}/${filename}.mp3`;
   return await downloadYoutubeAudio(youtubeUrl, songPath);
 }
 
 /**
- * Creates a stream for a specific range of a file
+ * Creates a stream-example for a specific range of a file
  * @param filePath Path to the file
  * @param range Range header from request (optional)
  * @returns Stream information including status code and headers
  */
 async function createAudioStream(filePath: string, range?: string) {
   const fileStats = await statAsync(filePath);
-  
+
   const headers: Record<string, string | number> = {
     "Content-Type": "audio/mpeg",
     "Content-Length": fileStats.size,
-    "Accept-Ranges": "bytes"
+    "Accept-Ranges": "bytes",
   };
-  
+
   let statusCode = 200;
   let stream;
-  
+
   if (range) {
     const parts = range.replace(/bytes=/, "").split("-");
     const start = parseInt(parts[0], 10);
     const end = parts[1] ? parseInt(parts[1], 10) : fileStats.size - 1;
-    
+
     const chunkSize = end - start + 1;
-    
+
     headers["Content-Range"] = `bytes ${start}-${end}/${fileStats.size}`;
     headers["Content-Length"] = chunkSize;
     statusCode = 206; // Partial Content
-    
+
     stream = createReadStream(filePath, { start, end });
   } else {
     stream = createReadStream(filePath);
   }
-  
+
   return {
     stream,
     headers,
-    statusCode
+    statusCode,
   };
 }
 
 export default {
   ensureAudioDirectory,
   prepareSongForStreaming,
-  createAudioStream
+  createAudioStream,
 };
