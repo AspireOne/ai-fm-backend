@@ -15,7 +15,7 @@ const elevenlabsProps = {
   voice_settings: {
     stability: 0.34,
     similarity_boost: 0.8,
-    speed: 1.08,
+    speed: 1.07,
     use_speaker_boost: true,
     // style: 0.2 // consumes additional resources
   } as VoiceSettings,
