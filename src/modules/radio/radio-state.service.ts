@@ -35,13 +35,64 @@ async function setBlockAndBroadcast(
     );
     const isAudioDownloaded = fs.existsSync(audioFilePath);
 
-    // TODO: We must somehow handle the loading/downloading state (tell it to the client and
-    //  then send updates radio state when it finishes).
+    // Handle loading/downloading state
     if (!isAudioDownloaded) {
+      // First send a loading state to the client
+      const loadingState: RadioState = {
+        radioId,
+        radioTitle: radio.title,
+        radioDescription: radio.description ?? undefined,
+        block: {
+          id: currentBlock.id,
+          type: currentBlock.type,
+          position: blockIndex,
+          title:
+            currentBlock.type === "song" && currentBlock.yt?.title
+              ? currentBlock.yt.title
+              : currentBlock.type === "voiceover"
+                ? "DJ Input"
+                : "Station ID",
+          streamUrl: `/radios/${radioId}/stream/${currentBlock.id}`,
+        },
+        totalBlocks: radio.blocks.length,
+        hasNext: blockIndex < radio.blocks.length - 1,
+        hasPrev: blockIndex > 0,
+        playState: "loading",
+        loadingProgress: {
+          status: currentBlock.type === "voiceover" ? "generating" : "downloading",
+          progress: 0,
+        },
+      };
+
+      // Broadcast the loading state
+      websocketService.broadcastUpdate(radioId, loadingState);
+
+      // Download or generate the audio
       await audioManagerService.downloadOrGenerateBlockAudio({
         allBlocks: radio.blocks,
         blockIndex: blockIndex,
       });
+
+      // Preload the next block's audio in the background if it exists
+      if (blockIndex < radio.blocks.length - 1) {
+        const nextBlock = radio.blocks[blockIndex + 1];
+        const nextAudioPath = audioManagerService.getBlockAudioPath(
+          nextBlock.id,
+          nextBlock.type,
+        );
+
+        if (!fs.existsSync(nextAudioPath)) {
+          // Don't await this - let it happen in the background
+          audioManagerService
+            .downloadOrGenerateBlockAudio({
+              allBlocks: radio.blocks,
+              blockIndex: blockIndex + 1,
+            })
+            .catch((err) => {
+              console.error(`Error preloading next block audio: ${err.message}`);
+            });
+        }
+      }
     }
 
     // Create the radio state
@@ -64,8 +115,10 @@ async function setBlockAndBroadcast(
       totalBlocks: radio.blocks.length,
       hasNext: blockIndex < radio.blocks.length - 1,
       hasPrev: blockIndex > 0,
-      // The playstate does nothing for now.
       playState,
+      loadingProgress: {
+        status: "ready",
+      },
     };
 
     // Broadcast the update to all connected clients

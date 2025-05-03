@@ -26,7 +26,11 @@ export type RadioState = {
   totalBlocks: number;
   hasNext: boolean;
   hasPrev: boolean;
-  playState: "loading" | "playing" | "paused" | "Stopped";
+  playState: "loading" | "playing" | "paused" | "stopped";
+  loadingProgress?: {
+    status: "downloading" | "generating" | "ready";
+    progress?: number; // 0-100 percentage if available
+  };
 };
 
 export type ParsedRadio = {
