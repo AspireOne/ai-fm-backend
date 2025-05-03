@@ -6,28 +6,23 @@ import { env, validateEnv } from "./helpers/env";
 import { validatePredefinedPathsExistOrThrow } from "./helpers/paths";
 import sensible from "@fastify/sensible";
 import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
+import { fastify, server } from "./server";
+import { initRadio } from "./utils/radio-state";
 
 dotenv.config();
-
-const fastify = Fastify({
-  logger: true,
-});
 
 validateEnv(env);
 
 const startServer = async () => {
   await validatePredefinedPathsExistOrThrow();
 
-  await fastify.register(cors, { origin: "*" });
-  fastify.register(sensible);
-  fastify.setValidatorCompiler(validatorCompiler);
-  fastify.setSerializerCompiler(serializerCompiler);
-
   try {
     console.log(`Initializing routes...`);
     registerAppController(fastify);
+    //await initializeAudio();
     console.log(`Running server on port ${env.PORT}...`);
-    await fastify.listen({ port: env.PORT });
+    server.listen(env.PORT);
+    //await startContinuousAudioStream();
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
