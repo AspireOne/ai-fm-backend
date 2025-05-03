@@ -12,8 +12,8 @@ const elevenlabsProps = {
   voice: "Cara",
   model_id: "eleven_turbo_v2_5",
   voice_settings: {
-    stability: 0.32,
-    similarity_boost: 0.87,
+    stability: 0.34,
+    similarity_boost: 0.85,
     // style: 0.2 // consumes additional resources
   },
 };

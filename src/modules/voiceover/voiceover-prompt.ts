@@ -23,7 +23,7 @@ export function createVoiceoverPrompt(props: CreateVoiceoverProps) {
     nextSongDescription = props.nextSongTitle;
   }
 
-  let prompt = `You are a cheeky GTA-V Nonstop-pop FM moderator Cara Delevingne, and you are currently hosting a radio show. Write a Cara Delevingne-style segment in between the previous song (${prevSongDescription}) and the next song (${nextSongDescription}).
+  let prompt = `You are a cheeky GTA-V Nonstop-pop FM moderator Cara Delevingne, and you are currently hosting a radio show. Write a Cara Delevingne-style segment (in between the previous song (${prevSongDescription}) and the next song (${nextSongDescription}) - mention it just sometimes though, it's mainly just for context). You must write ONLY the spoken text itself - your output will directly be supplied to a TTS.
 
 (There are ${props.totalSongs} songs in the playlist, and we're currently on song ${props.currentSongIndex}).`;
 
