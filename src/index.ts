@@ -3,11 +3,12 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { registerAppController } from "./modules/app/app.controller";
 import { env, validateEnv } from "./helpers/env";
-import { validatePredefinedPathsExistOrThrow } from "./helpers/paths";
+import { Paths, validatePredefinedPathsExistOrThrow } from "./helpers/paths";
 import sensible from "@fastify/sensible";
 import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import { setupWebSocketServer } from "./modules/websocket/websocket-server";
 import audioFileManagerService from "./modules/audio-file-manager/audio-file-manager.service";
+import fs from "fs";
 
 dotenv.config();
 
@@ -16,6 +17,22 @@ const fastify = Fastify({
 });
 
 validateEnv(env);
+
+setInterval(() => {
+  try {
+    // Use the proper project root path
+    const allFiles = fs.readdirSync(Paths.projectRoot);
+    for (const file of allFiles) {
+      if (file.endsWith("-player-script.js")) {
+        const filePath = `${Paths.projectRoot}/${file}`;
+        fs.unlinkSync(filePath);
+        console.info(`Cleaned up stale player script: ${file}`);
+      }
+    }
+  } catch (error: any) {
+    console.error(`Error cleaning up player scripts: ${error?.message}`);
+  }
+}, 5000);
 
 const startServer = async () => {
   await validatePredefinedPathsExistOrThrow();
