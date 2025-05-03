@@ -12,6 +12,26 @@ import ytService from "../yt/yt.service";
 
 const DOWNLOADED_AUDIO_DIR = Paths.downloadedFilesDir;
 
+// Ensure download directory exists
+function ensureDownloadDirExists() {
+  if (!DOWNLOADED_AUDIO_DIR || DOWNLOADED_AUDIO_DIR.trim() === "") {
+    throw new Error("Downloaded files directory path is empty or not defined");
+  }
+
+  if (!fs.existsSync(DOWNLOADED_AUDIO_DIR)) {
+    // Create directory recursively
+    fs.mkdirSync(DOWNLOADED_AUDIO_DIR, { recursive: true });
+    console.log(`Created download directory: ${DOWNLOADED_AUDIO_DIR}`);
+  }
+}
+
+// Call this immediately to verify the directory exists at startup
+try {
+  ensureDownloadDirExists();
+} catch (err: any) {
+  console.error(`Failed to create downloads directory: ${err?.message}`);
+}
+
 function getYtSongPath(blockId: string) {
   return path.join(DOWNLOADED_AUDIO_DIR, `${blockId}.mp3`);
 }
@@ -35,17 +55,15 @@ function getBlockAudioPath(blockId: string, type: Block["type"]) {
   throw new Error("Invalid block type");
 }
 
-async function isBlockAudioDownloaded(blockId: string, type: Block["type"]) {
-  const audioFilePath = getBlockAudioPath(blockId, type);
-  return fs.existsSync(audioFilePath);
-}
-
 /**
  * Downloads/generates the audio files if they don't exist.
  */
 async function downloadOrGenerateBlockAudio(
   props: DownloadOrGenerateBlockAudio,
 ): Promise<string | undefined> {
+  // Ensure the download directory exists
+  ensureDownloadDirExists();
+
   const { allBlocks, blockIndex } = props;
   const block = allBlocks[blockIndex];
 
@@ -106,6 +124,6 @@ async function downloadOrGenerateBlockAudio(
 export default {
   downloadOrGenerateBlockAudio,
   getBlockAudioPath,
-  isBlockAudioDownloaded,
   getVoiceoverTextPath,
+  ensureDownloadDirExists,
 };
