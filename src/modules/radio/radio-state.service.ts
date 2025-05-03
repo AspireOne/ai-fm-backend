@@ -1,4 +1,4 @@
-import { ParsedRadio, RadioState } from "./radio.types";
+import { RadioState } from "./radio.types";
 import radioCoreService from "./radio-core.service";
 import websocketService from "../websocket/websocket.service";
 
@@ -46,6 +46,7 @@ async function setBlockAndBroadcast(
       totalBlocks: radio.blocks.length,
       hasNext: blockIndex < radio.blocks.length - 1,
       hasPrev: blockIndex > 0,
+      // The playstate does nothing for now.
       playState,
     };
 
@@ -103,6 +104,8 @@ async function skipPrevious(radioId: string): Promise<void> {
  * @param radioId The ID of the radio
  * @param playState The play state to set
  */
+
+/*
 async function setPlayState(
   radioId: string,
   playState: RadioState["playState"],
@@ -118,6 +121,7 @@ async function setPlayState(
     throw error;
   }
 }
+*/
 
 /**
  * Send the current state of the radio to connected clients
@@ -137,9 +141,7 @@ async function sendCurrentState(radioId: string): Promise<void> {
 }
 
 export default {
-  setBlockAndBroadcast,
   skipNext,
   skipPrevious,
-  setPlayState,
   sendCurrentState,
 };

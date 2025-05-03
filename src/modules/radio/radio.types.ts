@@ -1,6 +1,6 @@
 import { Radios } from "kysely-codegen";
 
-type BlockType = "song" | "sweeper" | "input";
+export type BlockType = "song" | "sweeper" | "input";
 /**
  * The state sent to the client using WS.
  */

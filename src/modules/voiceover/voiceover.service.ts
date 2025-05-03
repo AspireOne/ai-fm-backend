@@ -1,0 +1,47 @@
+import { createVoiceoverPrompt } from "./voiceover-prompt";
+import { openai } from "../../providers/openai";
+import { elevenlabs } from "../../providers/elevenlabs";
+import { CreateVoiceoverProps } from "./voiceover.types";
+
+const textGenerationModel = "openai/gpt-4.1-mini";
+const elevenlabsProps = {
+  voice: "Cara",
+  model_id: "eleven_turbo_v2_5",
+  voice_settings: {
+    stability: 0.32,
+    similarity_boost: 0.87,
+    // style: 0.2 // consumes additional resources
+  },
+};
+
+// We need previous voiceovers and prev/next song name.
+async function generateVoiceoverText(props: CreateVoiceoverProps) {
+  const prompt = createVoiceoverPrompt(props);
+  console.debug(`Prompt for voiceover generation: ${prompt}`);
+
+  const response = await openai.chat.completions.create({
+    temperature: 1,
+    model: textGenerationModel,
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  const responseText = response.choices?.[0]?.message?.content;
+  console.debug(`Voiceover generation response: ${responseText}`);
+  if (!responseText) {
+    throw new Error("Empty response from OpenAI");
+  }
+
+  return responseText;
+}
+
+async function generateVoiceoverAudio(text: string) {
+  return await elevenlabs.generate({
+    ...elevenlabsProps,
+    text: text,
+  });
+}
+
+export default {
+  generateVoiceoverAudio,
+  generateVoiceoverText,
+};

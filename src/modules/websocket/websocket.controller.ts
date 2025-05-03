@@ -30,12 +30,12 @@ export function registerWebSocketController(fastify: FastifyInstance) {
             case "previous":
               await radioStateService.skipPrevious(radioId);
               break;
-            case "play":
+            /*case "play":
               await radioStateService.setPlayState(radioId, "playing");
               break;
             case "pause":
               await radioStateService.setPlayState(radioId, "paused");
-              break;
+              break;*/
             case "get_current_state":
               await radioStateService.sendCurrentState(radioId);
               break;
