@@ -19,11 +19,7 @@ function getNextSongBlock(blocks: Block[], currIndex: number): Block | null {
  * @param count The number of song blocks to return
  * @returns Array of the next X song blocks, or an empty array if none found
  */
-function getNextXSongBlocks(
-  blocks: Block[],
-  currIndex: number,
-  count: number,
-): Block[] {
+function getNextXSongBlocks(blocks: Block[], currIndex: number, count: number): Block[] {
   if (currIndex >= blocks.length - 1 || count <= 0) return [];
 
   const result: Block[] = [];

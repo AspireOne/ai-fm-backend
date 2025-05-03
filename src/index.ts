@@ -35,11 +35,11 @@ async function setupFastify() {
   await fastify.register(cors, { origin: "*" });
   fastify.register(sensible);
   fastify.register(websocket, {
-    options: { 
+    options: {
       maxPayload: 1048576, // 1MB max payload
       pingInterval: 30000, // Ping every 30 seconds
-      pongTimeout: 10000   // Wait 10 seconds for pong before considering connection dead
-    }
+      pongTimeout: 10000, // Wait 10 seconds for pong before considering connection dead
+    },
   });
   fastify.setValidatorCompiler(validatorCompiler);
   fastify.setSerializerCompiler(serializerCompiler);
