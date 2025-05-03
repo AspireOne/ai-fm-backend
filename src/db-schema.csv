@@ -9,6 +9,4 @@ radios,description,character varying,character varying(255),NULL,,
 radios,created_at,timestamp with time zone,timestamp with time zone,NOT NULL,now(),
 radios,updated_at,timestamp with time zone,timestamp with time zone,NOT NULL,now(),
 radios,is_public,boolean,boolean,NOT NULL,true,
-songs,id,uuid,uuid,NOT NULL,gen_random_uuid(),PRIMARY KEY
-songs,radio_id,uuid,uuid,NOT NULL,,FOREIGN KEY
-songs,yt_url,character varying,character varying(255),NOT NULL,,
+radios,songs,jsonb,jsonb,NOT NULL,'[]'::jsonb,

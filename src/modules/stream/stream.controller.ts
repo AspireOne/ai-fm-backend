@@ -2,23 +2,25 @@ import { createReadStream } from "fs";
 import { promisify } from "util";
 import { FastifyInstance } from "fastify";
 import * as fs from "node:fs";
-import { ensureAudioDir, ensureAudioFile } from "../../utils/checkAudioDir";
 import { Paths } from "../../helpers/paths";
+import { downloadYoutubeAudio } from "../youtube-downloader/youtube-downloader.service";
 
 const AUDIO_DIR = Paths.downloadedFilesDir;
 const statAsync = promisify(fs.stat);
 
 export function registerStreamController(fastify: FastifyInstance) {
-  ensureAudioDir(AUDIO_DIR);
+  // Ensure the directory exists
+  try {
+    fs.mkdirSync(AUDIO_DIR, { recursive: true });
+  } catch (error) {
+    // Directory already exists or cannot be created
+    console.error("Error creating directory:", error);
+  }
 
   fastify.get("/stream", async (request, reply) => {
     try {
       const songDir = AUDIO_DIR + "/HUH.mp3";
-      await ensureAudioFile(
-        "https://www.youtube.com/watch?v=GuJQSAiODqI",
-        "HUH",
-        AUDIO_DIR,
-      );
+      await downloadYoutubeAudio("https://www.youtube.com/watch?v=GuJQSAiODqI", songDir);
       const fileStats = await statAsync(songDir);
 
       reply.header("Content-Type", "audio/mpeg");

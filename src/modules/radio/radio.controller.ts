@@ -1,17 +1,20 @@
 import { FastifyInstance } from "fastify";
 import radioService from "./radio.service";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
+import { z } from "zod";
+import { createRadioInputSchema } from "./schemas/create-radio-input.schema";
 
 export function registerRadioController(_fastify: FastifyInstance) {
   const fastify = _fastify.withTypeProvider<ZodTypeProvider>();
 
   fastify.post("/radios", {
-    // schema: createRadioSchema, TODO
+    schema: { body: createRadioInputSchema },
     handler: async (request, reply) => {
-      return await radioService.createRadio();
+      return await radioService.createRadio(request.body);
     },
   });
-  fastify.post("/radios/:id/next", async (request, reply) => {
+
+  /*fastify.post("/radios/:id/next", async (request, reply) => {
     const { id } = request.params as { id: string };
     return await radioService.skipNext(id);
   });
@@ -25,9 +28,5 @@ export function registerRadioController(_fastify: FastifyInstance) {
     // throw fastify.httpErrors.notFound();
     const { id } = request.params as { id: string };
     return await radioService.togglePlay(id);
-  });
-
-  // Do not implement the ones below yet.
-  // TODO: fastify GET /radios
-  // TODO: fastify POST /radios (create a new radio)
+  });*/
 }

@@ -1,11 +1,14 @@
+type BlockType = "song" | "sweeper" | "input";
+/**
+ * The state sent to the client using WS.
+ */
 export type RadioState = {
   radioId: string;
   block: {
     id: string;
+    type: BlockType;
     position: number;
-    type: "song" | "voiceover" | "sweeper";
     title: string;
-    avatarUrl?: string;
   };
   totalBlocks: number;
   hasNext: boolean;
@@ -13,8 +16,8 @@ export type RadioState = {
   playState: "loading" | "playing" | "paused" | "Stopped";
 };
 
-export type CreateRadioInput = {
-  name: string;
-  description: string;
-  songs: string[];
+export type DbBlock = {
+  type: BlockType;
+  id: string;
+  url?: string;
 };
