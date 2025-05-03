@@ -19,7 +19,7 @@ async function getRadioOrThrow(radioId: string): Promise<ParsedRadio> {
     throw new Error(`Radio with ID ${radioId} not found`);
   }
 
-  const blocks: Block[] = JSON.parse(radio.blocks as string);
+  const blocks: Block[] = radio.blocks as object as Block[];
 
   return {
     ...radio,

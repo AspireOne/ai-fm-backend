@@ -8,10 +8,10 @@ import { registerWebSocketController } from "../websocket/websocket.controller";
  * @param fastify
  */
 export function registerAppController(fastify: FastifyInstance) {
+  registerWebSocketController(fastify);
   fastify.get("/", async function handler(request, reply) {
     return { state: "ok" };
   });
   registerStreamController(fastify);
   registerRadioController(fastify);
-  registerWebSocketController(fastify);
 }
