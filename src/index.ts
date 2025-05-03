@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import websocket from "@fastify/websocket";
 import { registerAppController } from "./modules/app/app.controller";
 import { env, validateEnv } from "./helpers/env";
 import { validatePredefinedPathsExistOrThrow } from "./helpers/paths";
@@ -17,11 +18,7 @@ validateEnv(env);
 
 const startServer = async () => {
   await validatePredefinedPathsExistOrThrow();
-
-  await fastify.register(cors, { origin: "*" });
-  fastify.register(sensible);
-  fastify.setValidatorCompiler(validatorCompiler);
-  fastify.setSerializerCompiler(serializerCompiler);
+  await setupFastify();
 
   try {
     console.log(`Initializing routes...`);
@@ -33,6 +30,20 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+async function setupFastify() {
+  await fastify.register(cors, { origin: "*" });
+  fastify.register(sensible);
+  fastify.register(websocket, {
+    options: { 
+      maxPayload: 1048576, // 1MB max payload
+      pingInterval: 30000, // Ping every 30 seconds
+      pongTimeout: 10000   // Wait 10 seconds for pong before considering connection dead
+    }
+  });
+  fastify.setValidatorCompiler(validatorCompiler);
+  fastify.setSerializerCompiler(serializerCompiler);
+}
 
 const shutdownServer = async () => {
   try {
