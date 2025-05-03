@@ -2,6 +2,10 @@ import { createVoiceoverPrompt } from "./voiceover-prompt";
 import { openai } from "../../providers/openai";
 import { elevenlabs } from "../../providers/elevenlabs";
 import { CreateVoiceoverProps } from "./voiceover.types";
+import { Block } from "../radio/radio.types";
+import assert from "node:assert";
+import fs from "fs";
+import audioFileManagerService from "../audio-file-manager/audio-file-manager.service";
 
 const textGenerationModel = "openai/gpt-4.1-mini";
 const elevenlabsProps = {
@@ -41,7 +45,36 @@ async function generateVoiceoverAudio(text: string) {
   });
 }
 
+function getPreviousVoiceoverTexts(blocks: Block[], currIndex: number): string[] {
+  if (currIndex === 0) return [];
+
+  const block = blocks[currIndex];
+  assert.ok(block);
+
+  const paths = blocks
+    .slice(0, currIndex)
+    .filter((b) => b.type === "voiceover")
+    .map((b) => audioFileManagerService.getVoiceoverTextPath(b.id));
+
+  const texts = [];
+
+  for (const path of paths) {
+    const exists = fs.existsSync(path);
+    if (!exists) {
+      console.debug(`Previous voiceover block text file does not exist: ${path}`);
+      continue;
+    }
+    const content = fs.readFileSync(path, { encoding: "utf-8" });
+    texts.push(content);
+  }
+
+  console.debug(`Previous voiceover texts for block ${block.id}: ${texts}`);
+
+  return texts;
+}
+
 export default {
   generateVoiceoverAudio,
   generateVoiceoverText,
+  getPreviousVoiceoverTexts,
 };

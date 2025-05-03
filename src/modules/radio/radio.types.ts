@@ -1,6 +1,14 @@
 import { Radios } from "kysely-codegen";
 
-export type BlockType = "song" | "sweeper" | "input";
+export type Block = {
+  type: "song" | "sweeper" | "voiceover";
+  id: string;
+  yt?: {
+    url: string;
+    title: string;
+  };
+};
+
 /**
  * The state sent to the client using WS.
  */
@@ -10,7 +18,7 @@ export type RadioState = {
   radioDescription?: string;
   block: {
     id: string;
-    type: BlockType;
+    type: Block["type"];
     position: number;
     title: string;
   };
@@ -20,15 +28,9 @@ export type RadioState = {
   playState: "loading" | "playing" | "paused" | "Stopped";
 };
 
-export type DbBlock = {
-  type: BlockType;
-  id: string;
-  url?: string;
-};
-
 export type ParsedRadio = {
   id: string;
   description: string | null;
   title: string;
-  blocks: DbBlock[];
+  blocks: Block[];
 };

@@ -1,7 +1,7 @@
 export type CreateVoiceoverProps = {
   previousVoiceovers: string[];
-  previousSongName?: string;
-  nextSongName?: string;
+  previousSongTitle: string | undefined | null;
+  nextSongTitle: string | undefined | null;
   totalSongs: number;
   currentSongIndex: number;
 };

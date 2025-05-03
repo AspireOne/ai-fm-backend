@@ -1,6 +1,5 @@
 import { FastifyInstance } from "fastify";
 import { registerRadioController } from "../radio/radio.controller";
-import { registerHealthController } from "../health/health.controller";
 import { registerStreamController } from "../stream-example/stream-example.controller";
 import { registerWebSocketController } from "../websocket/websocket.controller";
 
@@ -13,7 +12,6 @@ export function registerAppController(fastify: FastifyInstance) {
     return { state: "ok" };
   });
   registerStreamController(fastify);
-  registerHealthController(fastify);
   registerRadioController(fastify);
   registerWebSocketController(fastify);
 }

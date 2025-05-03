@@ -1,6 +1,8 @@
 import { RadioState } from "./radio.types";
 import radioCoreService from "./radio-core.service";
 import websocketService from "../websocket/websocket.service";
+import audioManagerService from "../audio-file-manager/audio-file-manager.service";
+import fs from "fs";
 
 const currentBlockIndices: Record<string, number> = {};
 
@@ -27,6 +29,21 @@ async function setBlockAndBroadcast(
 
     const currentBlock = radio.blocks[blockIndex];
 
+    const audioFilePath = audioManagerService.getBlockAudioPath(
+      currentBlock.id,
+      currentBlock.type,
+    );
+    const isAudioDownloaded = fs.existsSync(audioFilePath);
+
+    // TODO: We must somehow handle the loading/downloading state (tell it to the client and
+    //  then send updates radio state when it finishes).
+    if (!isAudioDownloaded) {
+      await audioManagerService.downloadOrGenerateBlockAudio({
+        allBlocks: radio.blocks,
+        blockIndex: blockIndex,
+      });
+    }
+
     // Create the radio state
     const state: RadioState = {
       radioId,
@@ -39,7 +56,7 @@ async function setBlockAndBroadcast(
         title:
           currentBlock.type === "song"
             ? "Song Title"
-            : currentBlock.type === "input"
+            : currentBlock.type === "voiceover"
               ? "DJ Input"
               : "Station ID",
       },

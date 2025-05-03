@@ -13,7 +13,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("updated_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))
     // @formatter:on
     .addColumn("is_public", "boolean", (col) => col.notNull().defaultTo(true))
-    .addColumn("songs", "jsonb", (col) => col.notNull().defaultTo(sql`'[]'::jsonb`))
+    .addColumn("blocks", "jsonb", (col) => col.notNull().defaultTo(sql`'[]'::jsonb`))
     
     .execute();
 }

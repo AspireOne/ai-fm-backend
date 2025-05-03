@@ -2,7 +2,7 @@ import { createReadStream } from "fs";
 import { promisify } from "util";
 import * as fs from "node:fs";
 import { Paths } from "../../helpers/paths";
-import { downloadYoutubeAudio } from "../youtube-downloader/youtube-downloader.service";
+import ytService from "../yt/yt.service";
 
 const AUDIO_DIR = Paths.downloadedFilesDir;
 const statAsync = promisify(fs.stat);
@@ -30,7 +30,7 @@ async function prepareSongForStreaming(
   filename: string,
 ): Promise<string> {
   const songPath = `${AUDIO_DIR}/${filename}.mp3`;
-  return await downloadYoutubeAudio(youtubeUrl, songPath);
+  return await ytService.downloadYoutubeAudio(youtubeUrl, songPath);
 }
 
 /**

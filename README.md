@@ -18,7 +18,7 @@ src/modules/[module]/
  └── [module].utils.ts
  └── [module].constants.ts
  └── dto
-   └── [module]-input.dto.ts (example)
+   └── [module]-voiceover.dto.ts (example)
  └── ... any other files ...
 ```
 
@@ -40,7 +40,7 @@ src/modules/[module]/
   - Follow naming pattern: `[module].service.ts`
 
 - **DTOs**: Data transfer objects (DTOs)
-  - Located in `src/modules/*/dto/` (e.g., `radio-input.dto.ts`)
+  - Located in `src/modules/*/dto/` (e.g., `radio-voiceover.dto.ts`)
   - Follow naming pattern: `[name].dto.ts`
   - Contains types/schemas for route inputs/outputs, e.g. fastify schema definitions for controllers
 
@@ -68,7 +68,7 @@ and most logic should be contained in a service to follow encapsulation and sing
   - Related to specific project tasks (like database migrations)
 
 - **Utils**: Generic utility functions
-  - Located in `src/utils/` (e.g., `detect-project-root.utils.ts`)
+  - Located in `src/utils/` (e.g., `detect-project-root.ts`)
   - General-purpose functions not tied to specific business logic
 
 ## Other components
@@ -100,7 +100,7 @@ and most logic should be contained in a service to follow encapsulation and sing
 ## Naming Conventions
 
 - **Files**: Use kebab-case for filenames (e.g., `openapi-client.ts`)
-- **Files**: Use a suffix, just like in controllers/services etc., e.g. `radio-input.type.ts`
+- **Files**: Use a suffix, just like in controllers/services etc., e.g. `radio-voiceover.type.ts`
 
 ## Development
 

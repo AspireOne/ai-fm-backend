@@ -6,9 +6,9 @@ echo "🔍 Running tsc and prettier in parallel..."
 # Wait for all background processes to finish
 wait
 
-# Only update the index if all checks passed successfully
+# Only update the blockIndex if all checks passed successfully
 if [ $? -eq 0 ]; then
-  git update-index --again
+  git update-blockIndex --again
   exit 0
 else
   exit 1

@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { access } from "node:fs/promises";
 import { constants } from "node:fs";
-import { detectProjectRoot } from "./detect-project-root.utils";
+import { detectProjectRoot } from "./detect-project-root";
 
 const PROJECT_ROOT = detectProjectRoot();
 
