@@ -1,5 +1,3 @@
-import { Radios } from "kysely-codegen";
-
 export type Block = {
   type: "song" | "sweeper" | "voiceover";
   id: string;
@@ -26,8 +24,7 @@ export type RadioState = {
   totalBlocks: number;
   hasNext: boolean;
   hasPrev: boolean;
-  playState: "loading" | "playing" | "paused" | "stopped";
-  loadingProgress?: {
+  status: {
     status: "downloading" | "generating" | "ready";
     progress?: number; // 0-100 percentage if available
   };

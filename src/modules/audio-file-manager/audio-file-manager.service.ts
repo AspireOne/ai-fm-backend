@@ -9,6 +9,7 @@ import path from "node:path";
 import { Block } from "../radio/radio.types";
 import blockUtilsService from "../block-utils/block-utils.service";
 import ytService from "../yt/yt.service";
+import { elevenlabsAudioToFile } from "../../helpers/elevenlabs-audio-to-file";
 
 const DOWNLOADED_AUDIO_DIR = Paths.downloadedFilesDir;
 
@@ -23,13 +24,6 @@ function ensureDownloadDirExists() {
     fs.mkdirSync(DOWNLOADED_AUDIO_DIR, { recursive: true });
     console.log(`Created download directory: ${DOWNLOADED_AUDIO_DIR}`);
   }
-}
-
-// Call this immediately to verify the directory exists at startup
-try {
-  ensureDownloadDirExists();
-} catch (err: any) {
-  console.error(`Failed to create downloads directory: ${err?.message}`);
 }
 
 function getYtSongPath(blockId: string) {
@@ -110,9 +104,9 @@ async function downloadOrGenerateBlockAudio(
         previousSongTitle: !prevSongBlock ? null : prevSongBlock?.yt?.title,
       });
       const audio = await voiceoverService.generateVoiceoverAudio(text);
+      await elevenlabsAudioToFile(audio, audioFilePath);
       const textPath = getVoiceoverTextPath(block.id);
       fs.writeFileSync(textPath, text);
-      audio.pipe(fs.createWriteStream(audioFilePath));
       break;
     default:
       throw new Error("Invalid block type");

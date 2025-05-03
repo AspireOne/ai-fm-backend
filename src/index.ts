@@ -7,6 +7,7 @@ import { validatePredefinedPathsExistOrThrow } from "./helpers/paths";
 import sensible from "@fastify/sensible";
 import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import { setupWebSocketServer } from "./modules/websocket/websocket-server";
+import audioFileManagerService from "./modules/audio-file-manager/audio-file-manager.service";
 
 dotenv.config();
 
@@ -18,6 +19,11 @@ validateEnv(env);
 
 const startServer = async () => {
   await validatePredefinedPathsExistOrThrow();
+  try {
+    audioFileManagerService.ensureDownloadDirExists();
+  } catch (err: any) {
+    console.error(`Failed to create downloads directory: ${err?.message}`);
+  }
   await setupFastify();
 
   try {

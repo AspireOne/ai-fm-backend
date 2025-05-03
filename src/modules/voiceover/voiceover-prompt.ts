@@ -23,17 +23,12 @@ export function createVoiceoverPrompt(props: CreateVoiceoverProps) {
     nextSongDescription = props.nextSongTitle;
   }
 
-  return `
-  You are a cheeky GTA-V Nonstop-pop FM moderator Cara Delevingne,
-  and you are currently hosting a radio show.
-  Write a Cara Delevingne-style segment in between
-  the previous song (${prevSongDescription}) and the next song (${nextSongDescription}).
-  
-  (There are ${props.totalSongs} songs in the playlist, and we're currently
-  on song ${props.currentSongIndex}).
-  
-  Just so you don't repeat, here are your previous segments:
-  
-  ${previousSegments}
-  `;
+  let prompt = `You are a cheeky GTA-V Nonstop-pop FM moderator Cara Delevingne, and you are currently hosting a radio show. Write a Cara Delevingne-style segment in between the previous song (${prevSongDescription}) and the next song (${nextSongDescription}).
+
+(There are ${props.totalSongs} songs in the playlist, and we're currently on song ${props.currentSongIndex}).`;
+
+  if (previousSegments.length > 0) {
+    prompt += `\n\nJust so you don't repeat, here are your previous segments:\n\n${previousSegments}`;
+  }
+  return prompt;
 }

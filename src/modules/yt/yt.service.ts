@@ -13,29 +13,21 @@ async function downloadYoutubeAudio(
   youtubeUrl: string,
   outputPath: string,
 ): Promise<string> {
-  // Ensure the directory exists
-  const dir = outputPath.substring(0, outputPath.lastIndexOf("/"));
-  try {
-    await access(dir);
-  } catch (error) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-
   // Check if file already exists
   try {
     await access(outputPath);
-    console.log(`File ${outputPath} already exists.`);
+    console.log(`File ${outputPath} already exists, not downloading yt video.`);
     return outputPath;
   } catch (error) {
     // File doesn't exist, proceed with download
-    console.log(`Downloading audio from YouTube to ${outputPath}...`);
+    console.log(`Downloading audio from YouTube (${youtubeUrl}) to ${outputPath}...`);
 
     return new Promise<string>((resolve, reject) => {
       const writeStream = fs.createWriteStream(outputPath);
 
       ytdl(youtubeUrl, {
         filter: "audioonly",
-        quality: "highestaudio",
+        quality: "highestaudio", // TODO: add highestaudio
       })
         .pipe(writeStream)
         .on("finish", () => {
