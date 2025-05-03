@@ -1,5 +1,5 @@
-import { FastifyInstance } from "fastify";
 import { RadioState } from "../radio/radio.types";
+import { WebSocket } from "ws";
 
 // Store active connections by radio ID
 const connections: Record<string, Set<WebSocket>> = {};

@@ -1,12 +1,12 @@
 import dotenv from "dotenv";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import websocket from "@fastify/websocket";
 import { registerAppController } from "./modules/app/app.controller";
 import { env, validateEnv } from "./helpers/env";
 import { validatePredefinedPathsExistOrThrow } from "./helpers/paths";
 import sensible from "@fastify/sensible";
 import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
+import { setupWebSocketServer } from "./modules/websocket/websocket-server";
 
 dotenv.config();
 
@@ -24,6 +24,8 @@ const startServer = async () => {
     console.log(`Initializing routes...`);
     registerAppController(fastify);
     console.log(`Running server on port ${env.PORT}...`);
+    // Set up WebSocket server on the same HTTP server
+    setupWebSocketServer(fastify.server);
     await fastify.listen({ port: env.PORT });
   } catch (err) {
     fastify.log.error(err);
@@ -34,13 +36,6 @@ const startServer = async () => {
 async function setupFastify() {
   await fastify.register(cors, { origin: "*" });
   fastify.register(sensible);
-  fastify.register(websocket, {
-    options: {
-      maxPayload: 1048576, // 1MB max payload
-      pingInterval: 30000, // Ping every 30 seconds
-      pongTimeout: 10000, // Wait 10 seconds for pong before considering connection dead
-    },
-  });
   fastify.setValidatorCompiler(validatorCompiler);
   fastify.setSerializerCompiler(serializerCompiler);
 }

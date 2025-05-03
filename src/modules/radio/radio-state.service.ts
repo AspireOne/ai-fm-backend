@@ -17,8 +17,11 @@ async function setBlockAndBroadcast(
   blockIndex: number,
   playState: RadioState["playState"] = "playing",
 ): Promise<void> {
+  console.log(`[Radio ${radioId}] Setting block index to ${blockIndex} with playState: ${playState}`);
+  
   try {
     const radio = await radioCoreService.getRadioOrThrow(radioId);
+    console.log(`[Radio ${radioId}] Found radio: "${radio.title}" with ${radio.blocks.length} blocks`);
 
     if (blockIndex < 0 || blockIndex >= radio.blocks.length) {
       throw new Error(`Invalid block index: ${blockIndex}`);
@@ -26,17 +29,22 @@ async function setBlockAndBroadcast(
 
     // Update the current block index
     currentBlockIndices[radioId] = blockIndex;
+    console.log(`[Radio ${radioId}] Current block index updated to ${blockIndex}`);
 
     const currentBlock = radio.blocks[blockIndex];
+    console.log(`[Radio ${radioId}] Current block type: ${currentBlock.type}, id: ${currentBlock.id}`);
 
     const audioFilePath = audioManagerService.getBlockAudioPath(
       currentBlock.id,
       currentBlock.type,
     );
     const isAudioDownloaded = fs.existsSync(audioFilePath);
+    console.log(`[Radio ${radioId}] Audio file ${isAudioDownloaded ? 'exists' : 'does not exist'} at: ${audioFilePath}`);
 
     // Handle loading/downloading state
     if (!isAudioDownloaded) {
+      console.log(`[Radio ${radioId}] Audio not downloaded yet, sending loading state`);
+      
       // First send a loading state to the client
       const loadingState: RadioState = {
         radioId,
@@ -66,12 +74,15 @@ async function setBlockAndBroadcast(
 
       // Broadcast the loading state
       websocketService.broadcastUpdate(radioId, loadingState);
+      console.log(`[Radio ${radioId}] Broadcasted loading state for block ${blockIndex}`);
 
       // Download or generate the audio
+      console.log(`[Radio ${radioId}] Starting download/generation for block ${blockIndex} (${currentBlock.type})`);
       await audioManagerService.downloadOrGenerateBlockAudio({
         allBlocks: radio.blocks,
         blockIndex: blockIndex,
       });
+      console.log(`[Radio ${radioId}] Successfully downloaded/generated audio for block ${blockIndex}`);
 
       // Preload the next block's audio in the background if it exists
       if (blockIndex < radio.blocks.length - 1) {
@@ -82,6 +93,7 @@ async function setBlockAndBroadcast(
         );
 
         if (!fs.existsSync(nextAudioPath)) {
+          console.log(`[Radio ${radioId}] Preloading next block (${blockIndex + 1}, ${nextBlock.type}) in background`);
           // Don't await this - let it happen in the background
           audioManagerService
             .downloadOrGenerateBlockAudio({
@@ -89,13 +101,16 @@ async function setBlockAndBroadcast(
               blockIndex: blockIndex + 1,
             })
             .catch((err) => {
-              console.error(`Error preloading next block audio: ${err.message}`);
+              console.error(`[Radio ${radioId}] Error preloading next block audio: ${err.message}`);
             });
+        } else {
+          console.log(`[Radio ${radioId}] Next block (${blockIndex + 1}) already downloaded, skipping preload`);
         }
       }
     }
 
     // Create the radio state
+    console.log(`[Radio ${radioId}] Creating final ready state for block ${blockIndex}`);
     const state: RadioState = {
       radioId,
       radioTitle: radio.title,
@@ -123,10 +138,11 @@ async function setBlockAndBroadcast(
 
     // Broadcast the update to all connected clients
     websocketService.broadcastUpdate(radioId, state);
+    console.log(`[Radio ${radioId}] Successfully broadcasted ready state for block ${blockIndex}`);
 
     return;
   } catch (error) {
-    console.error(`Error updating current block:`, error);
+    console.error(`[Radio ${radioId}] Error updating current block at index ${blockIndex}:`, error);
     throw error;
   }
 }
