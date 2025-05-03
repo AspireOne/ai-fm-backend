@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { registerRadioController } from "../radio/radio.controller";
-import { registerStreamController } from "../stream-example/stream-example.controller";
+import { registerStreamController } from "../stream/stream-example.controller";
 import { registerWebSocketController } from "../websocket/websocket.controller";
 
 /**

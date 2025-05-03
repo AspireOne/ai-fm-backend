@@ -54,11 +54,12 @@ async function setBlockAndBroadcast(
         type: currentBlock.type,
         position: blockIndex,
         title:
-          currentBlock.type === "song"
-            ? "Song Title"
+          currentBlock.type === "song" && currentBlock.yt?.title
+            ? currentBlock.yt.title
             : currentBlock.type === "voiceover"
               ? "DJ Input"
               : "Station ID",
+        streamUrl: `/radios/${radioId}/stream/${currentBlock.id}`,
       },
       totalBlocks: radio.blocks.length,
       hasNext: blockIndex < radio.blocks.length - 1,

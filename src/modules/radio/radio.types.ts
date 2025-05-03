@@ -21,6 +21,7 @@ export type RadioState = {
     type: Block["type"];
     position: number;
     title: string;
+    streamUrl: string; // URL to stream the audio for this block
   };
   totalBlocks: number;
   hasNext: boolean;
