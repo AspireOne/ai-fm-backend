@@ -85,7 +85,8 @@ export async function downloadBulkYoutubeAudio(
     while (queue.length > 0 && inProgress.size < maxConcurrent) {
       const task = queue.shift()!;
 
-      const downloadPromise = (async () => {
+      // Create the promise
+      const processTask = async () => {
         try {
           onProgress?.(completed, total, task);
           const outputPath = await downloadYoutubeAudio(task.youtubeUrl, task.outputPath);
@@ -100,9 +101,13 @@ export async function downloadBulkYoutubeAudio(
         } finally {
           completed++;
           onProgress?.(completed, total);
-          inProgress.delete(downloadPromise);
         }
-      })();
+      };
+
+      // Create the promise and store a reference to it
+      const downloadPromise = processTask().finally(() => {
+        inProgress.delete(downloadPromise);
+      });
       inProgress.add(downloadPromise);
     }
 
