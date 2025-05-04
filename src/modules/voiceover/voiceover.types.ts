@@ -4,4 +4,5 @@ export type CreateVoiceoverProps = {
   nextSongTitle: string | undefined | null;
   totalSongs: number;
   currentSongIndex: number;
+  radioTitle?: string;
 };

@@ -1,34 +1,46 @@
 import { CreateVoiceoverProps } from "./voiceover.types";
 
 export function createVoiceoverPrompt(props: CreateVoiceoverProps) {
-  const previousSegments = props.previousVoiceovers
-    .map((text, i) => `<segment-${i + 1}>\n${text}\n</segment-${i + 1}>`)
+  const prevSegments = props.previousVoiceovers
+    .map((text, i) => `Previous Segment ${i + 1}:\n${text}`)
     .join("\n\n");
 
-  let prevSongDescription;
-  if (props.previousSongTitle === null) {
-    prevSongDescription = "none - this is the beginning of the show";
-  } else if (props.previousSongTitle === undefined) {
-    prevSongDescription = "{unknown previous track}";
+  const prevSongTitle = formatPreviousSongTitle(props.previousSongTitle);
+  const nextSongTitle = formatNextSongTitle(props.nextSongTitle);
+
+  const introLine = `You're voicing a lively and playful radio host in the style of Cara Delevingne from GTA-V Nonstop Pop FM. The radio show's name is "${props.radioTitle}".`;
+  const contextLine = `You're between songs — the last one was "${prevSongTitle}", and the next is "${nextSongTitle}". (Don't always mention them, just keep them in mind.)`;
+  const progressLine = `We're at song ${props.currentSongIndex} out of ${props.totalSongs}.`;
+  const historyNote =
+    props.previousVoiceovers.length > 0
+      ? `Here's what you've said so far — avoid repeating yourself:\n\n\n${prevSegments}`
+      : "";
+
+  return `${introLine}
+${contextLine}
+${progressLine}
+
+Now write the next voiceover segment. Keep it casual, cheeky, and full of personality. You can include an anecdote, social commentary, or even something serious, it's up to you. Keep it under 20s. Output only the spoken text—no stage directions or notes.
+
+${historyNote}`;
+}
+
+function formatPreviousSongTitle(previousSongTitle: string | undefined | null) {
+  if (previousSongTitle === null) {
+    return "none - this is the beginning of the show";
+  } else if (previousSongTitle === undefined) {
+    return "{unknown previous track}";
   } else {
-    prevSongDescription = props.previousSongTitle;
+    return previousSongTitle;
   }
+}
 
-  let nextSongDescription;
-  if (props.nextSongTitle === null) {
-    nextSongDescription = "none - this is the end of the show";
-  } else if (props.nextSongTitle === undefined) {
-    nextSongDescription = "{unknown next track}";
+function formatNextSongTitle(nextSongTitle: string | undefined | null) {
+  if (nextSongTitle === null) {
+    return "none - this is the end of the show";
+  } else if (nextSongTitle === undefined) {
+    return "{unknown next track}";
   } else {
-    nextSongDescription = props.nextSongTitle;
+    return nextSongTitle;
   }
-
-  let prompt = `You are a cheeky GTA-V Nonstop-pop FM moderator Cara Delevingne, and you are currently hosting a radio show. Write a Cara Delevingne-style segment (in between the previous song (${prevSongDescription}) and the next song (${nextSongDescription}) - mention it just sometimes though, it's mainly just for context). You must write ONLY the spoken text itself - your output will directly be supplied to a TTS.
-
-(There are ${props.totalSongs} songs in the playlist, and we're currently on song ${props.currentSongIndex}).`;
-
-  if (previousSegments.length > 0) {
-    prompt += `\n\nJust so you don't repeat, here are your previous segments:\n\n${previousSegments}`;
-  }
-  return prompt;
 }

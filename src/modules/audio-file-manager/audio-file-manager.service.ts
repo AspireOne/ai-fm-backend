@@ -68,17 +68,6 @@ async function downloadOrGenerateBlockAudio(
     case "song":
       assert.ok(block.yt?.url, "YouTube URL is required for song blocks");
       await ytService.downloadYoutubeAudio(block.yt.url, getYtSongPath(block.id));
-      /*const nextSong = blockUtilsService.getNextSongBlock(allBlocks, blockIndex);
-      // Download one song in advance.
-      if (nextSong) {
-        assert.ok(nextSong.yt?.url, "YouTube URL is required for song blocks");
-        // Do not await.
-        ytService
-          .downloadYoutubeAudio(nextSong.yt.url, getYtSongPath(nextSong.id))
-          .catch((error) => {
-            console.error(`Error downloading next song: ${error}`);
-          });
-      }*/
       break;
     case "sweeper":
       const randomSweeperPath = sweeperService.getRandomSweeper();
@@ -102,6 +91,7 @@ async function downloadOrGenerateBlockAudio(
         totalSongs: allBlocks.filter((b) => b.type === "song").length,
         nextSongTitle: !nextSongBlock ? null : nextSongBlock?.yt?.title,
         previousSongTitle: !prevSongBlock ? null : prevSongBlock?.yt?.title,
+        radioTitle: props.radioTitle,
       });
       const audio = await voiceoverService.generateVoiceoverAudio(text);
       await elevenlabsAudioToFile(audio, audioFilePath);
