@@ -43,4 +43,5 @@ export type RadiosResponse = {
   description: string | null;
   is_public: boolean;
   blockCount: number;
+  songCount: number;
 }[];

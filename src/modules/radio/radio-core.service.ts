@@ -35,7 +35,8 @@ async function getRadios(): Promise<RadiosResponse> {
 
   return radios.map((radio) => ({
     ...radio,
-    blockCount: (radio.blocks as [])?.length,
+    blockCount: (radio.blocks as Block[])?.length,
+    songCount: (radio.blocks as Block[])?.filter((b) => b.type === "song").length,
     blocks: undefined,
   }));
 }

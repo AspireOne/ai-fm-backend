@@ -20,6 +20,7 @@ const elevenlabsProps = {
     // style: 0.2 // consumes additional resources
   } as VoiceSettings,
 };
+const moderatorName = "Cara Delevingne";
 
 // We need previous voiceovers and prev/next song name.
 async function generateVoiceoverText(props: CreateVoiceoverProps) {
@@ -81,4 +82,5 @@ export default {
   generateVoiceoverAudio,
   generateVoiceoverText,
   getPreviousVoiceoverTexts,
+  moderatorName,
 };
