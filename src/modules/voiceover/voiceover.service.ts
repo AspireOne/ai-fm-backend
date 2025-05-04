@@ -6,10 +6,8 @@ import { Block } from "../radio/radio.types";
 import assert from "node:assert";
 import fs from "fs";
 import audioFileManagerService from "../audio-file-manager/audio-file-manager.service";
-import { VoiceSettings } from "elevenlabs/api";
 
-const textGenerationModel = "openai/gpt-4.1-mini";
-const moderatorName = "Cara Delevingne";
+const textGenerationModel = "openai/gpt-4o";
 
 // We need previous voiceovers and prev/next song name.
 async function generateVoiceoverText(props: CreateVoiceoverProps) {
@@ -71,5 +69,4 @@ export default {
   generateVoiceoverAudio,
   generateVoiceoverText,
   getPreviousVoiceoverTexts,
-  moderatorName,
 };
