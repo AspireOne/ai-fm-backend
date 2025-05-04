@@ -24,6 +24,7 @@ const MandatoryPaths = {
 const OptionalPaths = {
   /** Directory that contains locally downloaded files not part of the project. */
   downloadedFilesDir: join(PROJECT_ROOT, "downloaded_files"),
+  ytCookies: join(PROJECT_ROOT, "yt_cookies.txt"),
 } as const;
 
 export const Paths = {

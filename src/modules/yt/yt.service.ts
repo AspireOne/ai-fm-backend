@@ -2,6 +2,7 @@ import ytdl from "@distube/ytdl-core";
 import { spawn } from "child_process";
 import { exec } from "child_process";
 import { promisify } from "util";
+import { Paths } from "../../helpers/paths";
 
 const execPromise = promisify(exec);
 
@@ -28,8 +29,14 @@ async function downloadYoutubeAudio(
       outputPath,
       // Add other options as needed
     ];
+    if (Paths.ytCookies) {
+      args.push("--cookies");
+      args.push(Paths.ytCookies);
+    }
 
-    console.log(`Running yt-dlp with URL: ${youtubeUrl}`);
+    console.log(
+      `Running yt-dlp with URL: ${youtubeUrl} (with cookies?: ${!!Paths.ytCookies})`,
+    );
 
     // Spawn the yt-dlp process
     const process = spawn("yt-dlp", args);

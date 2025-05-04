@@ -33,7 +33,7 @@ setInterval(() => {
   } catch (error: any) {
     console.error(`Error cleaning up player scripts: ${error?.message}`);
   }
-}, 5000);
+}, 15_000);
 
 const startServer = async () => {
   await validatePredefinedPathsExistOrThrow();
@@ -42,13 +42,13 @@ const startServer = async () => {
   } catch (err: any) {
     console.error(`Failed to create downloads directory: ${err?.message}`);
   }
-  
+
   // Check if yt-dlp and FFmpeg are available
   try {
     console.log("Checking if yt-dlp is available...");
     await ytService.checkYtDlpAvailability();
     console.log("yt-dlp is available.");
-    
+
     console.log("Checking if FFmpeg is available...");
     await ytService.checkFfmpegAvailability();
     console.log("FFmpeg is available.");
@@ -56,7 +56,7 @@ const startServer = async () => {
     console.error(err.message);
     process.exit(1);
   }
-  
+
   await setupFastify();
 
   try {
@@ -73,7 +73,9 @@ const startServer = async () => {
 };
 
 async function setupFastify() {
-  await fastify.register(cors, { origin: env.NODE_ENV === "development" ? "*" : "https://fm.matejpesl.cz" });
+  await fastify.register(cors, {
+    origin: env.NODE_ENV === "development" ? "*" : "https://fm.matejpesl.cz",
+  });
   fastify.register(sensible);
   fastify.setValidatorCompiler(validatorCompiler);
   fastify.setSerializerCompiler(serializerCompiler);
