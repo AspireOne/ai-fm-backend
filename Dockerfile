@@ -34,8 +34,8 @@ COPY . .
 # Create directory for downloaded files with correct permissions
 RUN mkdir -p /app/downloaded_files && chmod 777 /app/downloaded_files
 
-# Build the application with skipLibCheck
-RUN pnpm exec tsc --skipLibCheck
+# Build the application
+RUN pnpm exec tsc
 
 # Set production environment
 ENV NODE_ENV=production
