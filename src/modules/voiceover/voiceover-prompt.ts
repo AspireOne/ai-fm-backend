@@ -8,19 +8,19 @@ export function createVoiceoverPrompt(props: CreateVoiceoverProps) {
   const prevSongTitle = formatPreviousSongTitle(props.previousSongTitle);
   const nextSongTitle = formatNextSongTitle(props.nextSongTitle);
 
-  const introLine = `You're a radio show host. You're voicing ${props.voiceDescription}. The radio show's name is "${props.radioTitle}".`;
-  const contextLine = `You're between songs — the last one was "${prevSongTitle}", and the next is "${nextSongTitle}". (You can mention them only rarely)`;
+  const introLine = `You're a radio show host. You're voicing '${props.voiceDescription}'. The radio show's name is "${props.radioTitle}".`;
+  const contextLine = `You're between songs — the last one was "${prevSongTitle}", and the next is "${nextSongTitle}". (Don't obsessively mention them always)`;
   const progressLine = ""; //`We're at song ${props.currentSongIndex} out of ${props.totalSongs}.`;
   const historyNote =
     props.previousVoiceovers.length > 0
-      ? `Here's what you've said so far — avoid repeating yourself:\n\n\n${prevSegments}`
+      ? `Here's what you've said so far, in previous segments — avoid repeating yourself:\n\n\n${prevSegments}`
       : "";
 
   return `${introLine}
 ${contextLine}
 ${progressLine}
 
-Now write the next voiceover segment. Keep it casual, cheeky, and full of personality. You can include an anecdote, social commentary, a short story, or even something serious, it's up to you. Most inputs should be under 20s, some can be up to 1 minute. Output only the spoken text—no stage directions or notes.
+Now write the next voiceover segment. Keep it casual and cheeky. You can include an anecdote, social commentary, a short story, or even something serious, it's up to you. Most inputs should be under 20s, some can be up to 1 minute. Output only the spoken text—no stage directions or notes. Avoid repeating phrases and being cheesy.
 
 ${historyNote}`;
 }
