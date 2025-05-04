@@ -29,9 +29,9 @@ const moderatorList: Moderator[] = [
       voice: "Sarah",
       model_id: "eleven_multilingual_v2", //"eleven_turbo_v2_5",
       voice_settings: {
-        stability: 0.34,
-        similarity_boost: 0.8,
-        speed: 1.07,
+        stability: 0.38,
+        similarity_boost: 0.75,
+        speed: 1.05,
         use_speaker_boost: true,
         // style: 0.2 // consumes additional resources
       } as VoiceSettings,
@@ -46,10 +46,10 @@ const moderatorList: Moderator[] = [
       voice: "Liam",
       model_id: "eleven_multilingual_v2", //"eleven_turbo_v2_5",
       voice_settings: {
-        stability: 0.34,
-        similarity_boost: 0.8,
-        speed: 1.07,
-        use_speaker_boost: true,
+        stability: 0.45,
+        similarity_boost: 0.5,
+        speed: 1.02,
+        use_speaker_boost: false,
         // style: 0.2 // consumes additional resources
       } as VoiceSettings,
     },
