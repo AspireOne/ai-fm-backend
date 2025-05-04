@@ -25,8 +25,8 @@ RUN npm install -g pnpm@9
 # Copy package files
 COPY package.json pnpm-lock.yaml* ./
 
-# Install dependencies
-RUN pnpm install
+# Install dependencies (skip prepare script which tries to run husky)
+RUN pnpm install --ignore-scripts
 
 # Copy application source
 COPY . .
