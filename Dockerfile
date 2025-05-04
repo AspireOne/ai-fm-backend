@@ -26,7 +26,7 @@ RUN npm install -g pnpm@9
 COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies (including devDependencies for build, but skip prepare script)
-RUN pnpm install --ignore-scripts --production=false
+RUN pnpm install --ignore-scripts --frozen-lockfile --prod=false
 
 # Copy application source
 COPY . .
