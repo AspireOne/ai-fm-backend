@@ -8,7 +8,7 @@ export function createVoiceoverPrompt(props: CreateVoiceoverProps) {
   const prevSongTitle = formatPreviousSongTitle(props.previousSongTitle);
   const nextSongTitle = formatNextSongTitle(props.nextSongTitle);
 
-  const introLine = `You're voicing ${props.voiceDescription}. The radio show's name is "${props.radioTitle}".`;
+  const introLine = `You're a radio show host. You're voicing ${props.voiceDescription}. The radio show's name is "${props.radioTitle}".`;
   const contextLine = `You're between songs — the last one was "${prevSongTitle}", and the next is "${nextSongTitle}". (Don't always mention them, just keep them in mind.)`;
   const progressLine = `We're at song ${props.currentSongIndex} out of ${props.totalSongs}.`;
   const historyNote =
