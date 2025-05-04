@@ -85,6 +85,8 @@ async function fetchTitles(
         try {
           let info;
           try {
+            // TODO: Move to yt-dlp from system (like in downloadYoutubeAudio).
+            //  This works for now.
             info = await ytdl.getBasicInfo(song.url);
             if (!info?.videoDetails?.title) {
               console.error(`No title fetched for ${song.url}`);
@@ -133,13 +135,13 @@ async function checkYtDlpAvailability(): Promise<void> {
   return new Promise((resolve, reject) => {
     // Try to run yt-dlp --version
     const process = spawn("yt-dlp", ["--version"]);
-    
+
     let stderr = "";
-    
+
     process.stderr.on("data", (data) => {
       stderr += data.toString();
     });
-    
+
     process.on("close", (code) => {
       if (code === 0) {
         resolve();
@@ -147,9 +149,13 @@ async function checkYtDlpAvailability(): Promise<void> {
         reject(new Error(`yt-dlp is not available on the system. Error: ${stderr}`));
       }
     });
-    
+
     process.on("error", (err) => {
-      reject(new Error(`Failed to start yt-dlp: ${err.message}. Make sure yt-dlp is installed and in the PATH.`));
+      reject(
+        new Error(
+          `Failed to start yt-dlp: ${err.message}. Make sure yt-dlp is installed and in the PATH.`,
+        ),
+      );
     });
   });
 }
@@ -162,13 +168,13 @@ async function checkFfmpegAvailability(): Promise<void> {
   return new Promise((resolve, reject) => {
     // Try to run ffmpeg -version
     const process = spawn("ffmpeg", ["-version"]);
-    
+
     let stderr = "";
-    
+
     process.stderr.on("data", (data) => {
       stderr += data.toString();
     });
-    
+
     process.on("close", (code) => {
       if (code === 0) {
         resolve();
@@ -176,9 +182,13 @@ async function checkFfmpegAvailability(): Promise<void> {
         reject(new Error(`FFmpeg is not available on the system. Error: ${stderr}`));
       }
     });
-    
+
     process.on("error", (err) => {
-      reject(new Error(`Failed to start FFmpeg: ${err.message}. Make sure FFmpeg is installed and in the PATH.`));
+      reject(
+        new Error(
+          `Failed to start FFmpeg: ${err.message}. Make sure FFmpeg is installed and in the PATH.`,
+        ),
+      );
     });
   });
 }
