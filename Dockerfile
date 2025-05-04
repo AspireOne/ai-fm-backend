@@ -35,6 +35,7 @@ COPY . .
 RUN mkdir -p /app/downloaded_files && chmod 777 /app/downloaded_files
 
 # Build the application
+RUN pnpm exec db:sync
 RUN pnpm exec tsc
 
 # Set production environment
