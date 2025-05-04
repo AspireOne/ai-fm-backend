@@ -66,53 +66,62 @@ function createRadioState(
 }
 
 /**
- * Preloads the next block's audio in the background
+ * Preloads the next N blocks' audio in the background
  */
-function preloadNextBlockAudio(radio: ParsedRadio, currentBlockIndex: number): void {
-  if (currentBlockIndex >= radio.blocks.length - 1) {
-    return;
-  }
+function preloadNextBlocks(
+  radio: ParsedRadio, 
+  currentBlockIndex: number, 
+  count: number = 2
+): void {
+  for (let i = 1; i <= count; i++) {
+    const nextBlockIndex = currentBlockIndex + i;
+    
+    // Skip if we've reached the end of the blocks
+    if (nextBlockIndex >= radio.blocks.length) {
+      break;
+    }
 
-  const nextBlock = radio.blocks[currentBlockIndex + 1];
-  const nextAudioPath = audioManagerService.getBlockAudioPath(
-    nextBlock.id,
-    nextBlock.type,
-  );
-  const operationKey = `${radio.id}:${nextBlock.id}`;
-
-  // Check if this block's audio is already complete or being downloaded
-  if (isFileComplete(nextAudioPath) || ongoingOperations.has(operationKey)) {
-    console.log(
-      `[Radio ${radio.id}] Next block (${currentBlockIndex + 1}) already downloaded or download in progress, skipping preload`,
+    const nextBlock = radio.blocks[nextBlockIndex];
+    const nextAudioPath = audioManagerService.getBlockAudioPath(
+      nextBlock.id,
+      nextBlock.type,
     );
-    return;
-  }
+    const operationKey = `${radio.id}:${nextBlock.id}`;
 
-  console.log(
-    `[Radio ${radio.id}] Preloading next block (${currentBlockIndex + 1}, ${nextBlock.type}) in background`,
-  );
-
-  // Create and track the preload operation
-  const preloadOperation = audioManagerService
-    .downloadOrGenerateBlockAudio({
-      radio: radio,
-      blockIndex: currentBlockIndex + 1,
-    })
-    .then(() => {
-      return;
-    })
-    .catch((err) => {
-      console.error(
-        `[Radio ${radio.id}] Error preloading next block audio: ${err.message}`,
+    // Check if this block's audio is already complete or being downloaded
+    if (isFileComplete(nextAudioPath) || ongoingOperations.has(operationKey)) {
+      console.log(
+        `[Radio ${radio.id}] Block (${nextBlockIndex}) already downloaded or download in progress, skipping preload`,
       );
-    })
-    .finally(() => {
-      // Clean up the operation reference when done
-      ongoingOperations.delete(operationKey);
-    });
+      continue;
+    }
 
-  // Store the operation but don't await it - let it happen in the background
-  ongoingOperations.set(operationKey, preloadOperation);
+    console.log(
+      `[Radio ${radio.id}] Preloading block (${nextBlockIndex}, ${nextBlock.type}) in background`,
+    );
+
+    // Create and track the preload operation
+    const preloadOperation = audioManagerService
+      .downloadOrGenerateBlockAudio({
+        radio: radio,
+        blockIndex: nextBlockIndex,
+      })
+      .then(() => {
+        return;
+      })
+      .catch((err) => {
+        console.error(
+          `[Radio ${radio.id}] Error preloading block audio for index ${nextBlockIndex}: ${err.message}`,
+        );
+      })
+      .finally(() => {
+        // Clean up the operation reference when done
+        ongoingOperations.delete(operationKey);
+      });
+
+    // Store the operation but don't await it - let it happen in the background
+    ongoingOperations.set(operationKey, preloadOperation);
+  }
 }
 
 /**
@@ -202,8 +211,8 @@ function ensureBlockAudioExists(
           `[Radio ${radioId}] Successfully broadcasted ready state for block ${blockIndex}`,
         );
 
-        // Start preloading the next block
-        preloadNextBlockAudio(radio, blockIndex);
+        // Start preloading the next blocks
+        preloadNextBlocks(radio, blockIndex);
       } else {
         console.log(
           `[Radio ${radioId}] Block index changed during download from ${blockIndex} to ${currentBlockIndices[radioId]}, not broadcasting ready state`,
@@ -279,8 +288,8 @@ async function setBlockAndBroadcast(radioId: string, blockIndex: number): Promis
 
     // If audio is already ready, broadcast the ready state immediately
     if (isAudioReady) {
-      // Preload the next block's audio in the background
-      preloadNextBlockAudio(radio, blockIndex);
+      // Preload the next blocks' audio in the background
+      preloadNextBlocks(radio, blockIndex);
 
       // Create the final radio state
       console.log(
