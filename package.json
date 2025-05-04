@@ -15,6 +15,7 @@
   },
   "scripts": {
     "start": "npx tsx src/index.ts --",
+    "start:prod": "node dist/index.js",
     "dev": "npx tsx watch src/index.ts --",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
