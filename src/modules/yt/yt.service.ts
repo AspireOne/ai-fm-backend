@@ -1,9 +1,9 @@
-import * as fs from "node:fs";
-import { access } from "node:fs/promises";
 import ytdl from "@distube/ytdl-core";
-import { BulkDownloadOptions, BulkDownloadResult, DownloadTask } from "./yt.types";
-import path from "node:path";
-import { Paths } from "../../helpers/paths";
+import { spawn } from "child_process";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execPromise = promisify(exec);
 
 /**
  * Downloads audio from a YouTube URL and saves it as an MP3 file
@@ -14,106 +14,54 @@ import { Paths } from "../../helpers/paths";
 async function downloadYoutubeAudio(
   youtubeUrl: string,
   outputPath: string,
-): Promise<string> {
-  // Check if file already exists
-  try {
-    await access(outputPath);
-    console.log(`File ${outputPath} already exists, not downloading yt video.`);
-    return outputPath;
-  } catch (error) {
-    // File doesn't exist, proceed with download
-    console.log(`Downloading audio from YouTube (${youtubeUrl}) to ${outputPath}...`);
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // Command arguments for yt-dlp
+    const args = [
+      youtubeUrl,
+      "-x", // Extract audio
+      "--audio-format",
+      "mp3",
+      "--audio-quality",
+      "0", // Best quality
+      "-o",
+      outputPath,
+      // Add other options as needed
+    ];
 
-    const original = path.join(Paths.resourcesDir, "strike_a_pose.mp3");
-    // simply copy it to the outputPath
-    fs.copyFileSync(original, outputPath);
-    return outputPath;
+    console.log(`Running yt-dlp with URL: ${youtubeUrl}`);
 
-    return new Promise<string>((resolve, reject) => {
-      const writeStream = fs.createWriteStream(outputPath);
+    // Spawn the yt-dlp process
+    const process = spawn("yt-dlp", args);
 
-      ytdl(youtubeUrl, {
-        filter: "audioonly",
-        quality: "highestaudio",
-      })
-        .pipe(writeStream)
-        .on("finish", () => {
-          console.log(`Download complete: ${outputPath}`);
-          resolve(outputPath);
-        })
-        .on("error", (err: Error) => {
-          console.error(`Error downloading audio:`, err);
-          reject(err);
-        });
+    let stderr = "";
+
+    // Capture stdout (if you want to see progress)
+    process.stdout.on("data", (data) => {
+      console.log(`yt-dlp: ${data.toString().trim()}`);
     });
-  }
-}
 
-/**
- * Downloads multiple YouTube audio files concurrently with configurable thread limits
- * @param tasks Array of download tasks (YouTube URL and output path pairs)
- * @param options Configuration options for the bulk download
- * @returns Promise resolving to the bulk download results
- */
-async function downloadBulkYoutubeAudio(
-  tasks: DownloadTask[],
-  options: BulkDownloadOptions = {},
-): Promise<BulkDownloadResult> {
-  const { maxConcurrent = 3, continueOnError = true, onProgress } = options;
+    // Capture stderr for error handling
+    process.stderr.on("data", (data) => {
+      stderr += data.toString();
+      console.error(`yt-dlp error: ${data.toString().trim()}`);
+    });
 
-  const startTime = Date.now();
-  const result: BulkDownloadResult = {
-    successful: [],
-    failed: [],
-    timeTakenMs: 0,
-  };
+    // Handle process completion
+    process.on("close", (code) => {
+      if (code === 0) {
+        console.log(`Downloaded successfully: ${outputPath}`);
+        resolve();
+      } else {
+        reject(new Error(`yt-dlp failed with code ${code}: ${stderr}`));
+      }
+    });
 
-  // Create a queue of tasks
-  const queue = [...tasks];
-  const inProgress = new Set<Promise<void>>();
-  let completed = 0;
-  const total = tasks.length;
-
-  // Process the queue until it's empty
-  while (queue.length > 0 || inProgress.size > 0) {
-    // Fill up to maxConcurrent downloads
-    while (queue.length > 0 && inProgress.size < maxConcurrent) {
-      const task = queue.shift()!;
-
-      // Create the promise
-      const processTask = async () => {
-        try {
-          onProgress?.(completed, total, task);
-          const outputPath = await downloadYoutubeAudio(task.youtubeUrl, task.outputPath);
-          result.successful.push(outputPath);
-        } catch (error) {
-          result.failed.push({ task, error: error as Error });
-          if (!continueOnError) {
-            // Clear the queue to stop processing
-            queue.length = 0;
-            throw error;
-          }
-        } finally {
-          completed++;
-          onProgress?.(completed, total);
-        }
-      };
-
-      // Create the promise and store a reference to it
-      const downloadPromise = processTask().finally(() => {
-        inProgress.delete(downloadPromise);
-      });
-      inProgress.add(downloadPromise);
-    }
-
-    // Wait for at least one task to complete before continuing
-    if (inProgress.size > 0) {
-      await Promise.race(inProgress);
-    }
-  }
-
-  result.timeTakenMs = Date.now() - startTime;
-  return result;
+    // Handle process spawn errors
+    process.on("error", (err) => {
+      reject(new Error(`Failed to start yt-dlp: ${err.message}`));
+    });
+  });
 }
 
 async function fetchTitles(
@@ -177,8 +125,67 @@ async function fetchTitles(
   return results;
 }
 
+/**
+ * Checks if yt-dlp is available on the system
+ * @returns A promise that resolves if yt-dlp is available, rejects with an error otherwise
+ */
+async function checkYtDlpAvailability(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // Try to run yt-dlp --version
+    const process = spawn("yt-dlp", ["--version"]);
+    
+    let stderr = "";
+    
+    process.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+    
+    process.on("close", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`yt-dlp is not available on the system. Error: ${stderr}`));
+      }
+    });
+    
+    process.on("error", (err) => {
+      reject(new Error(`Failed to start yt-dlp: ${err.message}. Make sure yt-dlp is installed and in the PATH.`));
+    });
+  });
+}
+
+/**
+ * Checks if FFmpeg is available on the system
+ * @returns A promise that resolves if FFmpeg is available, rejects with an error otherwise
+ */
+async function checkFfmpegAvailability(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // Try to run ffmpeg -version
+    const process = spawn("ffmpeg", ["-version"]);
+    
+    let stderr = "";
+    
+    process.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+    
+    process.on("close", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`FFmpeg is not available on the system. Error: ${stderr}`));
+      }
+    });
+    
+    process.on("error", (err) => {
+      reject(new Error(`Failed to start FFmpeg: ${err.message}. Make sure FFmpeg is installed and in the PATH.`));
+    });
+  });
+}
+
 export default {
   downloadYoutubeAudio,
-  downloadBulkYoutubeAudio,
   fetchTitles,
+  checkYtDlpAvailability,
+  checkFfmpegAvailability,
 };

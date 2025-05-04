@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { registerAppController } from "./modules/app/app.controller";
+import ytService from "./modules/yt/yt.service";
 import { env, validateEnv } from "./helpers/env";
 import { Paths, validatePredefinedPathsExistOrThrow } from "./helpers/paths";
 import sensible from "@fastify/sensible";
@@ -41,6 +42,21 @@ const startServer = async () => {
   } catch (err: any) {
     console.error(`Failed to create downloads directory: ${err?.message}`);
   }
+  
+  // Check if yt-dlp and FFmpeg are available
+  try {
+    console.log("Checking if yt-dlp is available...");
+    await ytService.checkYtDlpAvailability();
+    console.log("yt-dlp is available.");
+    
+    console.log("Checking if FFmpeg is available...");
+    await ytService.checkFfmpegAvailability();
+    console.log("FFmpeg is available.");
+  } catch (err: any) {
+    console.error(err.message);
+    process.exit(1);
+  }
+  
   await setupFastify();
 
   try {

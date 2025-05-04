@@ -104,7 +104,26 @@ and most logic should be contained in a service to follow encapsulation and sing
 
 ## Development
 
+### Prerequisites
+
 - Make sure to add all .env variables (you can see them in env.ts)
+- **yt-dlp**: The application requires [yt-dlp](https://github.com/yt-dlp/yt-dlp) to be installed and accessible in your system PATH
+- **FFmpeg**: Required for audio processing and conversion (yt-dlp dependency)
+
+#### Installing Dependencies
+
+For Linux systems, you can use the provided script:
+```bash
+# Make the script executable
+chmod +x scripts/install-dependencies.sh
+
+# Run the installation script
+./scripts/install-dependencies.sh
+```
+
+For Windows:
+1. Install FFmpeg: Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH
+2. Install yt-dlp: `pip install yt-dlp` or download the executable from [yt-dlp releases](https://github.com/yt-dlp/yt-dlp/releases)
 
 ```bash
 # Install dependencies
