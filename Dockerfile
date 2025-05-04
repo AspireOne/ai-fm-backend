@@ -38,7 +38,7 @@ RUN mkdir -p /app/downloaded_files && chmod 777 /app/downloaded_files
 COPY tsconfig.build.json ./tsconfig.build.json
 
 # Build the application with the custom config
-RUN pnpm exec tsc -p tsconfig.build.json
+RUN pnpm exec tsc -p tsconfig.build.json --skipLibCheck
 
 # Set production environment
 ENV NODE_ENV=production
