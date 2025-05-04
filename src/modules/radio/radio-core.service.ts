@@ -1,6 +1,6 @@
 import { CreateRadioInputSchema } from "./schemas/create-radio-input.schema";
 import { db } from "../../providers/db";
-import { Block, ParsedRadio } from "./radio.types";
+import { Block, ParsedRadio, RadiosResponse } from "./radio.types";
 import { uuid } from "../../helpers/uuid";
 import ytService from "../yt/yt.service";
 
@@ -27,16 +27,32 @@ async function getRadioOrThrow(radioId: string): Promise<ParsedRadio> {
   };
 }
 
+async function getRadios(): Promise<RadiosResponse> {
+  const radios = await db
+    .selectFrom("radios")
+    .select(["id", "title", "description", "is_public", "blocks"])
+    .execute();
+
+  return radios.map((radio) => ({
+    ...radio,
+    blockCount: (radio.blocks as [])?.length,
+    blocks: undefined,
+  }));
+}
+
 async function createRadio(props: CreateRadioInputSchema) {
   const withTitles = await ytService.fetchTitles(props.songs);
+  if (!withTitles.some((s) => s.title)) {
+    throw new Error("Could not fetch title for any song.");
+  }
   const feed = createFeed(withTitles);
 
   return await db
     .insertInto("radios")
     .values({
       title: props.title,
-      is_public: true,
-      description: props.description ?? "",
+      is_public: props.is_public,
+      description: props.description,
       blocks: JSON.stringify(feed),
     })
     .returningAll()
@@ -49,7 +65,7 @@ async function createRadio(props: CreateRadioInputSchema) {
  * regardless of whether it is immediately followed by an input or directly a song.
  * @param songs
  */
-function createFeed(songs: { url: string; title: string }[]): Block[] {
+function createFeed(songs: { url: string; title: string | null }[]): Block[] {
   const feed: Block[] = [];
 
   // Configuration for randomization
@@ -76,8 +92,6 @@ function createFeed(songs: { url: string; title: string }[]): Block[] {
     // Determine if we should add a sweeper after this song
     const addSweeper = Math.random() < sweeperProbability;
     if (addSweeper) {
-      // Add a sweeper (random number between 1-8)
-      const sweeperNumber = Math.floor(Math.random() * 8) + 1;
       feed.push({
         type: `sweeper`,
         id: `sweeper-${uuid()}`,
@@ -100,5 +114,6 @@ function createFeed(songs: { url: string; title: string }[]): Block[] {
 
 export default {
   createRadio,
+  getRadios,
   getRadioOrThrow,
 };

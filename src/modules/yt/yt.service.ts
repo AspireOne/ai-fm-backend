@@ -2,6 +2,8 @@ import * as fs from "node:fs";
 import { access } from "node:fs/promises";
 import ytdl from "@distube/ytdl-core";
 import { BulkDownloadOptions, BulkDownloadResult, DownloadTask } from "./yt.types";
+import path from "node:path";
+import { Paths } from "../../helpers/paths";
 
 /**
  * Downloads audio from a YouTube URL and saves it as an MP3 file
@@ -22,12 +24,17 @@ async function downloadYoutubeAudio(
     // File doesn't exist, proceed with download
     console.log(`Downloading audio from YouTube (${youtubeUrl}) to ${outputPath}...`);
 
+    const original = path.join(Paths.resourcesDir, "strike_a_pose.mp3");
+    // simply copy it to the outputPath
+    fs.copyFileSync(original, outputPath);
+    return outputPath;
+
     return new Promise<string>((resolve, reject) => {
       const writeStream = fs.createWriteStream(outputPath);
 
       ytdl(youtubeUrl, {
         filter: "audioonly",
-        quality: "highestaudio", // TODO: add highestaudio
+        quality: "highestaudio",
       })
         .pipe(writeStream)
         .on("finish", () => {
@@ -109,15 +116,11 @@ async function downloadBulkYoutubeAudio(
   return result;
 }
 
-// TODO: Make sure it indeed workss.
 async function fetchTitles(
   songs: { url: string }[],
-  props: { maxConcurrent: number; placeholderTitle: string } = {
-    maxConcurrent: 5,
-    placeholderTitle: "Unknown title",
-  },
-): Promise<{ url: string; title: string }[]> {
-  const results: { url: string; title: string }[] = [];
+  props: { maxConcurrent: number } = { maxConcurrent: 5 },
+): Promise<{ url: string; title: string | null }[]> {
+  const results: { url: string; title: string | null }[] = [];
 
   // Create a queue of songs
   const queue = [...songs];
@@ -132,17 +135,28 @@ async function fetchTitles(
       // Create the promise
       const processTask = async () => {
         try {
-          const info = await ytdl.getBasicInfo(song.url);
+          let info;
+          try {
+            info = await ytdl.getBasicInfo(song.url);
+            if (!info?.videoDetails?.title) {
+              console.error(`No title fetched for ${song.url}`);
+              info = null;
+            }
+          } catch (error) {
+            console.error(`Error fetching basic info for ${song.url}:`, error);
+            info = null;
+          }
+
           results.push({
             url: song.url,
-            title: info.videoDetails.title,
+            title: info?.videoDetails?.title || null,
           });
         } catch (error) {
           console.error(`Error fetching title for ${song.url}:`, error);
           // Add with a placeholder title if there's an error
           results.push({
             url: song.url,
-            title: props.placeholderTitle,
+            title: null,
           });
         }
       };

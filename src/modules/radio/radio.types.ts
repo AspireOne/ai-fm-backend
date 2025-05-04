@@ -3,7 +3,7 @@ export type Block = {
   id: string;
   yt?: {
     url: string;
-    title: string;
+    title: string | null;
   };
 };
 
@@ -36,3 +36,11 @@ export type ParsedRadio = {
   title: string;
   blocks: Block[];
 };
+
+export type RadiosResponse = {
+  id: string;
+  title: string;
+  description: string | null;
+  is_public: boolean;
+  blockCount: number;
+}[];

@@ -89,8 +89,8 @@ async function downloadOrGenerateBlockAudio(
         previousVoiceovers: previousVoiceovers,
         currentSongIndex: currentSongIndex,
         totalSongs: allBlocks.filter((b) => b.type === "song").length,
-        nextSongTitle: !nextSongBlock ? null : nextSongBlock?.yt?.title,
-        previousSongTitle: !prevSongBlock ? null : prevSongBlock?.yt?.title,
+        nextSongTitle: !nextSongBlock ? null : nextSongBlock?.yt?.title || undefined,
+        previousSongTitle: !prevSongBlock ? null : prevSongBlock?.yt?.title || undefined,
         radioTitle: props.radioTitle,
       });
       const audio = await voiceoverService.generateVoiceoverAudio(text);

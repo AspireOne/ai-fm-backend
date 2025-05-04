@@ -13,4 +13,9 @@ export function registerRadioController(_fastify: FastifyInstance) {
       return await radioCoreService.createRadio(request.body);
     },
   });
+  fastify.get("/radios", {
+    handler: async (request, reply) => {
+      return await radioCoreService.getRadios();
+    },
+  });
 }
