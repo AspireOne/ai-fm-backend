@@ -57,7 +57,7 @@ const startServer = async () => {
 };
 
 async function setupFastify() {
-  await fastify.register(cors, { origin: ["https://fm.matejpesl.cz", env.NODE_ENV === "development" ? "*" : undefined] });
+  await fastify.register(cors, { origin: env.NODE_ENV === "development" ? "*" : "https://fm.matejpesl.cz" });
   fastify.register(sensible);
   fastify.setValidatorCompiler(validatorCompiler);
   fastify.setSerializerCompiler(serializerCompiler);
