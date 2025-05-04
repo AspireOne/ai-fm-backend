@@ -49,7 +49,7 @@ const startServer = async () => {
     console.log(`Running server on port ${env.PORT}...`);
     // Set up WebSocket server on the same HTTP server
     setupWebSocketServer(fastify.server);
-    await fastify.listen({ port: env.PORT });
+    await fastify.listen({ port: env.PORT, host: "0.0.0.0" });
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
@@ -57,7 +57,7 @@ const startServer = async () => {
 };
 
 async function setupFastify() {
-  await fastify.register(cors, { origin: "*" });
+  await fastify.register(cors, { origin: ["https://fm.matejpesl.cz", env.NODE_ENV === "development" ? "*" : undefined] });
   fastify.register(sensible);
   fastify.setValidatorCompiler(validatorCompiler);
   fastify.setSerializerCompiler(serializerCompiler);
