@@ -11,10 +11,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp (try apt first, then pip with override if necessary)
-RUN apt-get update && \
-    apt-get install -y yt-dlp || \
-    pip3 install --no-cache-dir --break-system-packages yt-dlp
+# Install yt-dlp using pip with recommended dependencies
+RUN python3 -m pip install -U --break-system-packages "yt-dlp[default]"
 
 # Verify installations
 RUN yt-dlp --version && ffmpeg -version
