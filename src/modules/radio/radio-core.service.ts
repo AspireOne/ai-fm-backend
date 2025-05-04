@@ -36,7 +36,7 @@ async function createRadio(props: CreateRadioInputSchema) {
     .values({
       title: props.title,
       is_public: true,
-      description: "Default description",
+      description: props.description ?? "",
       blocks: JSON.stringify(feed),
     })
     .returningAll()

@@ -10,6 +10,7 @@ export const createRadioInputSchema = z.object({
     )
     .nonempty(),
   title: z.string().max(100),
+  description: z.string().max(1000).optional(),
 });
 
 export type CreateRadioInputSchema = z.infer<typeof createRadioInputSchema>;
