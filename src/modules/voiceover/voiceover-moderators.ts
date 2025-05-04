@@ -13,7 +13,7 @@ const moderatorList: Moderator[] = [
       model_id: "eleven_multilingual_v2", //"eleven_turbo_v2_5",
       voice_settings: {
         stability: 0.34,
-        similarity_boost: 0.8,
+        similarity_boost: 0.82,
         speed: 1.07,
         use_speaker_boost: true,
         // style: 0.2 // consumes additional resources

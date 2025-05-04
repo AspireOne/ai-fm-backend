@@ -9,17 +9,6 @@ import audioFileManagerService from "../audio-file-manager/audio-file-manager.se
 import { VoiceSettings } from "elevenlabs/api";
 
 const textGenerationModel = "openai/gpt-4.1-mini";
-const elevenlabsProps = {
-  voice: "Cara",
-  model_id: "eleven_multilingual_v2", //"eleven_turbo_v2_5",
-  voice_settings: {
-    stability: 0.34,
-    similarity_boost: 0.8,
-    speed: 1.07,
-    use_speaker_boost: true,
-    // style: 0.2 // consumes additional resources
-  } as VoiceSettings,
-};
 const moderatorName = "Cara Delevingne";
 
 // We need previous voiceovers and prev/next song name.
