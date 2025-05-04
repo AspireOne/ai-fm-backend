@@ -10,7 +10,7 @@ export function createVoiceoverPrompt(props: CreateVoiceoverProps) {
 
   const introLine = `You're a radio show host. You're voicing ${props.voiceDescription}. The radio show's name is "${props.radioTitle}".`;
   const contextLine = `You're between songs — the last one was "${prevSongTitle}", and the next is "${nextSongTitle}". (You can mention them only rarely)`;
-  const progressLine = `We're at song ${props.currentSongIndex} out of ${props.totalSongs}.`;
+  const progressLine = ""; //`We're at song ${props.currentSongIndex} out of ${props.totalSongs}.`;
   const historyNote =
     props.previousVoiceovers.length > 0
       ? `Here's what you've said so far — avoid repeating yourself:\n\n\n${prevSegments}`
