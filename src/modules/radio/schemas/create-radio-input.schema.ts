@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { moderators } from "../../voiceover/voiceover-moderators";
 
 export const createRadioInputSchema = z.object({
   songs: z
@@ -13,6 +14,8 @@ export const createRadioInputSchema = z.object({
   title: z.string().max(100),
   description: z.string().max(255).optional(),
   is_public: z.boolean().optional().default(true),
+  voice_id: z.enum(moderators.ids).optional(),
+  voice_description: z.string().max(255).optional(),
 });
 
 export type CreateRadioInputSchema = z.infer<typeof createRadioInputSchema>;

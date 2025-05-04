@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { registerRadioController } from "../radio/radio.controller";
 import { registerStreamController } from "../stream/stream.controller";
+import { registerVoiceoverController } from "../voiceover/voiceover.controller";
 
 /**
  * The main controller - registers all other controllers.
@@ -12,4 +13,5 @@ export function registerAppController(fastify: FastifyInstance) {
   });
   registerStreamController(fastify);
   registerRadioController(fastify);
+  registerVoiceoverController(fastify);
 }

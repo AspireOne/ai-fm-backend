@@ -1,7 +1,6 @@
-import { Block } from "../radio/radio.types";
+import { Block, ParsedRadio } from "../radio/radio.types";
 
 export type DownloadOrGenerateBlockAudio = {
-  allBlocks: Block[];
+  radio: ParsedRadio;
   blockIndex: number;
-  radioTitle?: string;
 };

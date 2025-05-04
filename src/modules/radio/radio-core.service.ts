@@ -3,6 +3,7 @@ import { db } from "../../providers/db";
 import { Block, ParsedRadio, RadiosResponse } from "./radio.types";
 import { uuid } from "../../helpers/uuid";
 import ytService from "../yt/yt.service";
+import { moderators } from "../voiceover/voiceover-moderators";
 
 /**
  * @throws Error if the radio is not found
@@ -12,7 +13,7 @@ async function getRadioOrThrow(radioId: string): Promise<ParsedRadio> {
   const radio = await db
     .selectFrom("radios")
     .where("id", "=", radioId)
-    .select(["blocks", "title", "description", "id"])
+    .select(["blocks", "title", "description", "id", "voice_id", "voice_description"])
     .executeTakeFirst();
 
   if (!radio) {
@@ -21,8 +22,20 @@ async function getRadioOrThrow(radioId: string): Promise<ParsedRadio> {
 
   const blocks: Block[] = radio.blocks as object as Block[];
 
+  const isVoiceIdValid = moderators.list.some((mod) => mod.id === radio.voice_id);
+  if (radio.voice_id && !isVoiceIdValid) {
+    console.error(`Invalid voice ID: ${radio.voice_id} unsetting it from the radio`);
+    db.updateTable("radios")
+      .set("voice_id", null)
+      .where("id", "=", radioId)
+      .execute()
+      .catch((e) => console.error("Could not unset voice id", e));
+  }
+
   return {
     ...radio,
+    voice_id: radio.voice_id ?? moderators.default.id,
+    voice_description: radio.voice_description ?? moderators.default.personality,
     blocks,
   };
 }
@@ -30,13 +43,17 @@ async function getRadioOrThrow(radioId: string): Promise<ParsedRadio> {
 async function getRadios(): Promise<RadiosResponse> {
   const radios = await db
     .selectFrom("radios")
-    .select(["id", "title", "description", "is_public", "blocks"])
+    .select(["id", "title", "description", "is_public", "blocks", "created_at"])
     .execute();
 
   return radios.map((radio) => ({
     ...radio,
     blockCount: (radio.blocks as Block[])?.length,
     songCount: (radio.blocks as Block[])?.filter((b) => b.type === "song").length,
+    createdAt:
+      typeof radio.created_at === "string"
+        ? radio.created_at
+        : radio.created_at.toISOString(),
     blocks: undefined,
   }));
 }
@@ -48,12 +65,28 @@ async function createRadio(props: CreateRadioInputSchema) {
   }
   const feed = createFeed(withTitles);
 
+  let voiceId = props.voice_id;
+  const voiceDescription =
+    props.voice_description && props.voice_description.trim().length > 5
+      ? props.voice_description
+      : undefined;
+
+  if (props.voice_id) {
+    const isVoiceIdValid = moderators.list.some((mod) => mod.id === props.voice_id);
+    if (!isVoiceIdValid) {
+      console.error(`Invalid voice ID: ${props.voice_id}`);
+      voiceId = undefined;
+    }
+  }
+
   return await db
     .insertInto("radios")
     .values({
       title: props.title,
       is_public: props.is_public,
       description: props.description,
+      voice_id: voiceId,
+      voice_description: voiceDescription,
       blocks: JSON.stringify(feed),
     })
     .returningAll()

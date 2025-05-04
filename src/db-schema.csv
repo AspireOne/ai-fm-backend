@@ -10,3 +10,5 @@ radios,created_at,timestamp with time zone,timestamp with time zone,NOT NULL,now
 radios,updated_at,timestamp with time zone,timestamp with time zone,NOT NULL,now(),
 radios,is_public,boolean,boolean,NOT NULL,true,
 radios,blocks,jsonb,jsonb,NOT NULL,'[]'::jsonb,
+radios,voice_id,character varying,character varying(255),NULL,,
+radios,voice_description,character varying,character varying(255),NULL,,

@@ -10,6 +10,7 @@ import { Block } from "../radio/radio.types";
 import blockUtilsService from "../block-utils/block-utils.service";
 import ytService from "../yt/yt.service";
 import { elevenlabsAudioToFile } from "../../helpers/elevenlabs-audio-to-file";
+import { moderators } from "../voiceover/voiceover-moderators";
 
 const DOWNLOADED_AUDIO_DIR = Paths.downloadedFilesDir;
 
@@ -58,8 +59,8 @@ async function downloadOrGenerateBlockAudio(
   // Ensure the download directory exists
   ensureDownloadDirExists();
 
-  const { allBlocks, blockIndex } = props;
-  const block = allBlocks[blockIndex];
+  const { blockIndex, radio } = props;
+  const block = radio.blocks[blockIndex];
 
   const audioFilePath = getBlockAudioPath(block.id, block.type);
   if (fs.existsSync(audioFilePath)) return;
@@ -76,24 +77,34 @@ async function downloadOrGenerateBlockAudio(
       break;
     case "voiceover":
       const previousVoiceovers = voiceoverService.getPreviousVoiceoverTexts(
-        allBlocks,
+        radio.blocks,
         blockIndex,
       );
-      const nextSongBlock = blockUtilsService.getNextSongBlock(allBlocks, blockIndex);
-      const prevSongBlock = blockUtilsService.getPreviousSongBlock(allBlocks, blockIndex);
+      const nextSongBlock = blockUtilsService.getNextSongBlock(radio.blocks, blockIndex);
+      const prevSongBlock = blockUtilsService.getPreviousSongBlock(
+        radio.blocks,
+        blockIndex,
+      );
       const currentSongIndex = prevSongBlock?.id
-        ? allBlocks.findIndex((b) => b.id === prevSongBlock.id)
+        ? radio.blocks.findIndex((b) => b.id === prevSongBlock.id)
         : 0;
 
       const text = await voiceoverService.generateVoiceoverText({
         previousVoiceovers: previousVoiceovers,
         currentSongIndex: currentSongIndex,
-        totalSongs: allBlocks.filter((b) => b.type === "song").length,
+        totalSongs: radio.blocks.filter((b) => b.type === "song").length,
         nextSongTitle: !nextSongBlock ? null : nextSongBlock?.yt?.title || undefined,
         previousSongTitle: !prevSongBlock ? null : prevSongBlock?.yt?.title || undefined,
-        radioTitle: props.radioTitle,
+        radioTitle: radio.title,
+        voiceId: radio.voice_id,
+        voiceDescription: radio.voice_description,
       });
-      const audio = await voiceoverService.generateVoiceoverAudio(text);
+      let moderator = moderators.list.find((mod) => mod.id === radio.voice_id)!;
+      if (!moderator) {
+        console.error(`Moderator not found for ID: ${radio.voice_id}!!!`);
+        moderator = moderators.default;
+      }
+      const audio = await voiceoverService.generateVoiceoverAudio(text, moderator);
       await elevenlabsAudioToFile(audio, audioFilePath);
       const textPath = getVoiceoverTextPath(block.id);
       fs.writeFileSync(textPath, text);

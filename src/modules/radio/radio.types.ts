@@ -21,6 +21,11 @@ export type RadioState = {
     title: string;
     streamUrl: string; // URL to stream the audio for this block
   };
+  moderator: {
+    id: string;
+    name: string;
+    personality: string;
+  };
   totalBlocks: number;
   hasNext: boolean;
   hasPrev: boolean;
@@ -34,6 +39,8 @@ export type ParsedRadio = {
   id: string;
   description: string | null;
   title: string;
+  voice_id: string;
+  voice_description: string;
   blocks: Block[];
 };
 
@@ -44,4 +51,5 @@ export type RadiosResponse = {
   is_public: boolean;
   blockCount: number;
   songCount: number;
+  createdAt: string;
 }[];

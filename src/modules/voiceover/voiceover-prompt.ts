@@ -8,7 +8,7 @@ export function createVoiceoverPrompt(props: CreateVoiceoverProps) {
   const prevSongTitle = formatPreviousSongTitle(props.previousSongTitle);
   const nextSongTitle = formatNextSongTitle(props.nextSongTitle);
 
-  const introLine = `You're voicing a lively and playful radio host in the style of Cara Delevingne from GTA-V Nonstop Pop FM. The radio show's name is "${props.radioTitle}".`;
+  const introLine = `You're voicing ${props.voiceDescription}. The radio show's name is "${props.radioTitle}".`;
   const contextLine = `You're between songs — the last one was "${prevSongTitle}", and the next is "${nextSongTitle}". (Don't always mention them, just keep them in mind.)`;
   const progressLine = `We're at song ${props.currentSongIndex} out of ${props.totalSongs}.`;
   const historyNote =
@@ -27,7 +27,7 @@ ${historyNote}`;
 
 function formatPreviousSongTitle(previousSongTitle: string | undefined | null) {
   if (previousSongTitle === null) {
-    return "none - this is the beginning of the show";
+    return "{none - this is the beginning of the show}";
   } else if (previousSongTitle === undefined) {
     return "{unknown previous track}";
   } else {
@@ -37,7 +37,7 @@ function formatPreviousSongTitle(previousSongTitle: string | undefined | null) {
 
 function formatNextSongTitle(nextSongTitle: string | undefined | null) {
   if (nextSongTitle === null) {
-    return "none - this is the end of the show";
+    return "{none - this is the end of the show}";
   } else if (nextSongTitle === undefined) {
     return "{unknown next track}";
   } else {

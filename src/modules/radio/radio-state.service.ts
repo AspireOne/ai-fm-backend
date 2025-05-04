@@ -4,6 +4,7 @@ import websocketService from "../websocket/websocket.service";
 import audioManagerService from "../audio-file-manager/audio-file-manager.service";
 import fs from "fs";
 import voiceoverService from "../voiceover/voiceover.service";
+import { moderators } from "../voiceover/voiceover-moderators";
 
 const currentBlockIndices: Record<string, number> = {};
 
@@ -25,7 +26,6 @@ function validateBlockIndex(radioId: string, radio: any, blockIndex: number): vo
  * Creates a RadioState object based on the current state
  */
 function createRadioState(
-  radioId: string,
   radio: ParsedRadio,
   blockIndex: number,
   statusInfo: RadioState["status"],
@@ -35,12 +35,15 @@ function createRadioState(
   const getTitle = () => {
     if (currentBlock.type === "song") return currentBlock.yt?.title || "Unknown song";
     if (currentBlock.type === "sweeper") return radio.title;
-    if (currentBlock.type === "voiceover") return voiceoverService.moderatorName;
+    if (currentBlock.type === "voiceover") {
+      const moderator = moderators.list.find((mod) => mod.id === radio.voice_id)!;
+      return moderator.name;
+    }
     throw new Error("Unknown block type");
   };
 
   return {
-    radioId,
+    radioId: radio.id,
     radioTitle: radio.title,
     radioDescription: radio.description ?? undefined,
     block: {
@@ -48,7 +51,12 @@ function createRadioState(
       type: currentBlock.type,
       position: blockIndex,
       title: getTitle(),
-      streamUrl: `/radios/${radioId}/stream/${currentBlock.id}`,
+      streamUrl: `/radios/${radio.id}/stream/${currentBlock.id}`,
+    },
+    moderator: {
+      id: radio.voice_id,
+      name: moderators.list.find((mod) => mod.id === radio.voice_id)!.name,
+      personality: radio.voice_description,
     },
     totalBlocks: radio.blocks.length,
     hasNext: blockIndex < radio.blocks.length - 1,
@@ -60,11 +68,7 @@ function createRadioState(
 /**
  * Preloads the next block's audio in the background
  */
-function preloadNextBlockAudio(
-  radioId: string,
-  radio: ParsedRadio,
-  currentBlockIndex: number,
-): void {
+function preloadNextBlockAudio(radio: ParsedRadio, currentBlockIndex: number): void {
   if (currentBlockIndex >= radio.blocks.length - 1) {
     return;
   }
@@ -74,33 +78,32 @@ function preloadNextBlockAudio(
     nextBlock.id,
     nextBlock.type,
   );
-  const operationKey = `${radioId}:${nextBlock.id}`;
+  const operationKey = `${radio.id}:${nextBlock.id}`;
 
   // Check if this block's audio is already complete or being downloaded
   if (isFileComplete(nextAudioPath) || ongoingOperations.has(operationKey)) {
     console.log(
-      `[Radio ${radioId}] Next block (${currentBlockIndex + 1}) already downloaded or download in progress, skipping preload`,
+      `[Radio ${radio.id}] Next block (${currentBlockIndex + 1}) already downloaded or download in progress, skipping preload`,
     );
     return;
   }
 
   console.log(
-    `[Radio ${radioId}] Preloading next block (${currentBlockIndex + 1}, ${nextBlock.type}) in background`,
+    `[Radio ${radio.id}] Preloading next block (${currentBlockIndex + 1}, ${nextBlock.type}) in background`,
   );
 
   // Create and track the preload operation
   const preloadOperation = audioManagerService
     .downloadOrGenerateBlockAudio({
-      allBlocks: radio.blocks,
+      radio: radio,
       blockIndex: currentBlockIndex + 1,
-      radioTitle: radio.title,
     })
     .then(() => {
       return;
     })
     .catch((err) => {
       console.error(
-        `[Radio ${radioId}] Error preloading next block audio: ${err.message}`,
+        `[Radio ${radio.id}] Error preloading next block audio: ${err.message}`,
       );
     })
     .finally(() => {
@@ -160,7 +163,7 @@ function ensureBlockAudioExists(
   }
 
   // First send a loading state to the client
-  const loadingState = createRadioState(radioId, radio, blockIndex, {
+  const loadingState = createRadioState(radio, blockIndex, {
     status: currentBlock.type === "voiceover" ? "generating" : "downloading",
     progress: 0,
   });
@@ -177,7 +180,7 @@ function ensureBlockAudioExists(
       );
 
       await audioManagerService.downloadOrGenerateBlockAudio({
-        allBlocks: radio.blocks,
+        radio: radio,
         blockIndex: blockIndex,
       });
 
@@ -191,7 +194,7 @@ function ensureBlockAudioExists(
         console.log(
           `[Radio ${radioId}] Creating final ready state for block ${blockIndex}`,
         );
-        const readyState = createRadioState(radioId, radio, blockIndex, {
+        const readyState = createRadioState(radio, blockIndex, {
           status: "ready",
         });
         websocketService.broadcastUpdate(radioId, readyState);
@@ -200,7 +203,7 @@ function ensureBlockAudioExists(
         );
 
         // Start preloading the next block
-        preloadNextBlockAudio(radioId, radio, blockIndex);
+        preloadNextBlockAudio(radio, blockIndex);
       } else {
         console.log(
           `[Radio ${radioId}] Block index changed during download from ${blockIndex} to ${currentBlockIndices[radioId]}, not broadcasting ready state`,
@@ -217,7 +220,7 @@ function ensureBlockAudioExists(
         console.error(
           `[Radio ${radioId}] Broadcasting error state for block ${blockIndex}`,
         );
-        const errorState = createRadioState(radioId, radio, blockIndex, {
+        const errorState = createRadioState(radio, blockIndex, {
           status: "ready", // Use a valid status type
           progress: -1, // Use negative progress as an indicator of error
         });
@@ -277,13 +280,13 @@ async function setBlockAndBroadcast(radioId: string, blockIndex: number): Promis
     // If audio is already ready, broadcast the ready state immediately
     if (isAudioReady) {
       // Preload the next block's audio in the background
-      preloadNextBlockAudio(radioId, radio, blockIndex);
+      preloadNextBlockAudio(radio, blockIndex);
 
       // Create the final radio state
       console.log(
         `[Radio ${radioId}] Creating final ready state for block ${blockIndex}`,
       );
-      const state = createRadioState(radioId, radio, blockIndex, { status: "ready" });
+      const state = createRadioState(radio, blockIndex, { status: "ready" });
 
       // Broadcast the update to all connected clients
       websocketService.broadcastUpdate(radioId, state);

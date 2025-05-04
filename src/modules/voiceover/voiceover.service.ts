@@ -1,7 +1,7 @@
 import { createVoiceoverPrompt } from "./voiceover-prompt";
 import { openai } from "../../providers/openai";
 import { elevenlabs } from "../../providers/elevenlabs";
-import { CreateVoiceoverProps } from "./voiceover.types";
+import { CreateVoiceoverProps, Moderator } from "./voiceover.types";
 import { Block } from "../radio/radio.types";
 import assert from "node:assert";
 import fs from "fs";
@@ -42,9 +42,9 @@ async function generateVoiceoverText(props: CreateVoiceoverProps) {
   return responseText;
 }
 
-async function generateVoiceoverAudio(text: string) {
+async function generateVoiceoverAudio(text: string, moderator: Moderator) {
   return await elevenlabs.generate({
-    ...elevenlabsProps,
+    ...moderator.voiceSettings,
     output_format: "mp3_44100_128",
     text: text,
   });
