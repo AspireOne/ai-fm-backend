@@ -10,6 +10,9 @@ import os from "os";
 import { spawn } from "child_process";
 import audioManagerService from "../audio-file-manager/audio-file-manager.service";
 import { Paths } from "../../helpers/paths";
+// These imports are dynamically required in the downloadAndForwardSongs function
+// import FormData from 'form-data';
+// import axios from 'axios';
 
 /**
  * @throws Error if the radio is not found
@@ -459,10 +462,113 @@ async function uploadSongs(props: { songs: Array<{ blockId: string, radioId: str
   return results;
 }
 
+/**
+ * Downloads all songs from a radio and uploads them to another server
+ * @param radioId The radio ID
+ * @param serverUrl The target server URL
+ * @returns Statistics about the operation
+ */
+async function downloadAndForwardSongs(radioId: string, serverUrl: string): Promise<{
+  totalSongs: number;
+  downloaded: number;
+  uploaded: number;
+  failed: {
+    blockId: string;
+    error: string;
+  }[];
+}> {
+  const results = {
+    totalSongs: 0,
+    downloaded: 0,
+    uploaded: 0,
+    failed: [] as { blockId: string; error: string }[]
+  };
+
+  try {
+    // Step 1: Get the radio
+    const radio = await getRadioOrThrow(radioId);
+    
+    // Step 2: Filter out song blocks
+    const songBlocks = radio.blocks.filter(block => block.type === "song");
+    results.totalSongs = songBlocks.length;
+    
+    if (songBlocks.length === 0) {
+      return results;
+    }
+    
+    console.log(`[Radio ${radioId}] Starting download and forward of ${songBlocks.length} songs to ${serverUrl}`);
+    
+    // Step 3: Download all songs
+    const downloadResult = await preloadAllSongs(radioId);
+    results.downloaded = downloadResult.successful;
+    
+    // Step 4: Upload each successfully downloaded song to the target server
+    for (const block of songBlocks) {
+      const blockId = block.id;
+      const audioPath = audioManagerService.getBlockAudioPath(blockId, "song");
+      
+      // Check if the file exists
+      if (!fs.existsSync(audioPath) || fs.statSync(audioPath).size === 0) {
+        results.failed.push({
+          blockId,
+          error: "Song file not found or empty after download"
+        });
+        continue;
+      }
+      
+      try {
+        // Create a form data object for the upload
+        const FormData = require('form-data');
+        const axios = require('axios');
+        const form = new FormData();
+        
+        // Add the required fields
+        form.append('blockId', blockId);
+        form.append('radioId', radioId);
+        form.append('file', fs.createReadStream(audioPath), {
+          filename: path.basename(audioPath),
+          contentType: 'audio/mpeg'
+        });
+        
+        // Upload to the target server
+        console.log(`[Radio ${radioId}] Uploading song ${blockId} to ${serverUrl}/radios/upload-songs`);
+        const response = await axios.post(`${serverUrl}/radios/upload-songs`, form, {
+          headers: form.getHeaders(),
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity
+        });
+        
+        if (response.status >= 200 && response.status < 300) {
+          console.log(`[Radio ${radioId}] Successfully uploaded song ${blockId}`);
+          results.uploaded++;
+        } else {
+          console.error(`[Radio ${radioId}] Failed to upload song ${blockId}: ${response.statusText}`);
+          results.failed.push({
+            blockId,
+            error: `Upload failed with status ${response.status}: ${response.statusText}`
+          });
+        }
+      } catch (error) {
+        console.error(`[Radio ${radioId}] Error uploading song ${blockId}:`, error);
+        results.failed.push({
+          blockId,
+          error: error instanceof Error ? error.message : "Unknown error during upload"
+        });
+      }
+    }
+    
+    return results;
+  } catch (error) {
+    console.error(`[Radio ${radioId}] Error in download and forward:`, error);
+    throw error;
+  }
+}
+
 export default {
   createRadio,
   getRadios,
   getRadioOrThrow,
   preloadAllSongs,
   uploadSongs,
+  downloadAndForwardSongs,
 };
