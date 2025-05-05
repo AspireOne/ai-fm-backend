@@ -15,7 +15,7 @@ export const createRadioInputSchema = z.object({
   description: z.string().max(255).optional(),
   is_public: z.boolean().optional().default(true),
   voice_id: z.enum(moderators.ids).optional(),
-  voice_description: z.string().max(255).optional(),
+  voice_description: z.string().max(2000).optional(),
 });
 
 export type CreateRadioInputSchema = z.infer<typeof createRadioInputSchema>;
