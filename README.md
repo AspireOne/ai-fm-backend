@@ -113,6 +113,7 @@ and most logic should be contained in a service to follow encapsulation and sing
 #### Installing Dependencies
 
 For Linux systems, you can use the provided script:
+
 ```bash
 # Make the script executable
 chmod +x scripts/install-dependencies.sh
@@ -122,6 +123,7 @@ chmod +x scripts/install-dependencies.sh
 ```
 
 For Windows:
+
 1. Install FFmpeg: Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH
 2. Install yt-dlp: `pip install yt-dlp` or download the executable from [yt-dlp releases](https://github.com/yt-dlp/yt-dlp/releases)
 
@@ -141,3 +143,62 @@ pnpm migrate:create add_table_users
 # Rollback the last migration
 pnpm migrate:down
 ```
+
+## Handling YouTube Songs
+
+YouTube blocks song downloads from many server IP addresses. To work around this limitation, the project includes utilities for manually uploading songs:
+
+### Manual Song Upload
+
+Two scripts are available for handling songs:
+
+1. **upload-songs.js** - Upload individual songs to the server:
+
+   ```bash
+   # Install dependencies
+   npm install axios form-data
+
+   # Upload a single song
+   node upload-songs.js path/to/song.mp3 block-id radio-id
+
+   # Upload multiple songs using a JSON config file
+   node upload-songs.js --bulk songs.json
+   ```
+
+   Example `songs.json` format:
+
+   ```json
+   {
+     "songs": [
+       {
+         "filePath": "path/to/song1.mp3",
+         "blockId": "block-123",
+         "radioId": "radio-456"
+       },
+       {
+         "filePath": "path/to/song2.mp3",
+         "blockId": "block-789",
+         "radioId": "radio-456"
+       }
+     ]
+   }
+   ```
+
+2. **forward-radio.js** - Download songs locally and forward them to a remote server:
+
+   ```bash
+   # Install dependencies
+   npm install axios
+
+   # First, preload all songs for a radio to download them locally
+   curl "http://localhost:5000/radios/your-radio-id/preload-all-songs"
+
+   # Then, use the script to upload songs from your 'downloaded_files' directory to the remote server
+   node forward-radio.js radio-id
+   ```
+
+This workflow allows you to:
+
+1. Download songs on a machine that isn't blocked by YouTube (using preload-all-songs endpoint)
+2. Forward those songs (from your downloaded_files directory) to your production server
+3. All songs are properly organized with correct block IDs
