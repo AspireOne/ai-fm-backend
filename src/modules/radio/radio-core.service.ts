@@ -389,9 +389,80 @@ async function preloadAllSongs(radioId: string): Promise<{
   });
 }
 
+/**
+ * Uploads song files and saves them with the correct block ID
+ * @param props Object containing the songs to upload
+ * @returns Result of the upload operation
+ */
+async function uploadSongs(props: { songs: Array<{ blockId: string, radioId: string, fileBuffer: Buffer, filename: string }> }): Promise<{
+  totalSongs: number;
+  successful: number;
+  failed: {
+    blockId: string;
+    error: string;
+  }[];
+}> {
+  const results = {
+    totalSongs: props.songs.length,
+    successful: 0,
+    failed: [] as { blockId: string; error: string }[]
+  };
+
+  // Process each song
+  for (const song of props.songs) {
+    const { blockId, radioId, fileBuffer, filename } = song;
+    
+    try {
+      // Verify the radio exists and the block belongs to it
+      const radio = await getRadioOrThrow(radioId);
+      const block = radio.blocks.find(b => b.id === blockId);
+      
+      if (!block) {
+        results.failed.push({
+          blockId,
+          error: `Block with ID ${blockId} not found in radio ${radioId}`
+        });
+        continue;
+      }
+      
+      if (block.type !== "song") {
+        results.failed.push({
+          blockId,
+          error: `Block with ID ${blockId} is not a song block`
+        });
+        continue;
+      }
+      
+      // Get the target path for the audio file
+      const targetPath = audioManagerService.getBlockAudioPath(blockId, "song");
+      
+      // Create directory if it doesn't exist
+      const targetDir = path.dirname(targetPath);
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      
+      // Write the file
+      fs.writeFileSync(targetPath, fileBuffer);
+      console.log(`[Radio ${radioId}] Saved uploaded song for block ${blockId} to ${targetPath}`);
+      
+      results.successful++;
+    } catch (error) {
+      console.error(`[Radio ${radioId}] Error saving song for block ${blockId}:`, error);
+      results.failed.push({
+        blockId,
+        error: error instanceof Error ? error.message : "Unknown error occurred"
+      });
+    }
+  }
+  
+  return results;
+}
+
 export default {
   createRadio,
   getRadios,
   getRadioOrThrow,
   preloadAllSongs,
+  uploadSongs,
 };

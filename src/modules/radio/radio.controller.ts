@@ -3,6 +3,9 @@ import radioCoreService from "./radio-core.service";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { createRadioInputSchema } from "./schemas/create-radio-input.schema";
 import { z } from "zod";
+import { FastifyRequest } from "fastify";
+import { MultipartFile } from "@fastify/multipart";
+import { uploadSongsInputSchema } from "./schemas/upload-songs-input.schema";
 
 export function registerRadioController(_fastify: FastifyInstance) {
   const fastify = _fastify.withTypeProvider<ZodTypeProvider>();
@@ -51,5 +54,80 @@ export function registerRadioController(_fastify: FastifyInstance) {
         };
       }
     },
+  });
+
+  // Endpoint to upload songs with their block IDs
+  fastify.post("/radios/upload-songs", {
+    config: {
+      rawBody: true
+    },
+    handler: async (request, reply) => {
+      try {
+        // Get the multipart data
+        const parts = request.parts();
+        
+        let buffer: Buffer | null = null;
+        let filename = '';
+        let blockId = '';
+        let radioId = '';
+        
+        // Process each part
+        for await (const part of parts) {
+          if (part.type === 'file') {
+            buffer = await part.toBuffer();
+            filename = part.filename;
+          } else {
+            // This is a field
+            if (part.fieldname === 'blockId') {
+              blockId = part.value as string;
+            }
+            if (part.fieldname === 'radioId') {
+              radioId = part.value as string;
+            }
+          }
+        }
+        
+        if (!buffer) {
+          reply.status(400);
+          return {
+            status: "error",
+            message: "No file uploaded"
+          };
+        }
+        
+        const songEntries = [];
+        
+        if (!blockId || !radioId) {
+          reply.status(400);
+          return {
+            status: "error",
+            message: "blockId and radioId are required"
+          };
+        }
+        
+        songEntries.push({
+          blockId,
+          radioId,
+          fileBuffer: buffer,
+          filename: filename
+        });
+        
+        // Save the uploaded songs
+        const result = await radioCoreService.uploadSongs({ songs: songEntries });
+        
+        return {
+          status: "success",
+          message: "Songs uploaded successfully",
+          ...result
+        };
+      } catch (error) {
+        console.error("Error uploading songs:", error);
+        reply.status(500);
+        return {
+          status: "error",
+          message: error instanceof Error ? error.message : "Unknown error occurred"
+        };
+      }
+    }
   });
 }

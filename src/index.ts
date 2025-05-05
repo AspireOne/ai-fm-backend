@@ -77,6 +77,11 @@ async function setupFastify() {
     origin: env.NODE_ENV === "development" ? "*" : "https://fm.matejpesl.cz",
   });
   fastify.register(sensible);
+  fastify.register(require('@fastify/multipart'), {
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB max file size
+    }
+  });
   fastify.setValidatorCompiler(validatorCompiler);
   fastify.setSerializerCompiler(serializerCompiler);
 }
