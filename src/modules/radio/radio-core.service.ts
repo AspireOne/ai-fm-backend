@@ -4,6 +4,12 @@ import { Block, ParsedRadio, RadiosResponse } from "./radio.types";
 import { uuid } from "../../helpers/uuid";
 import ytService from "../yt/yt.service";
 import { moderators } from "../voiceover/voiceover-moderators";
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { spawn } from "child_process";
+import audioManagerService from "../audio-file-manager/audio-file-manager.service";
+import { Paths } from "../../helpers/paths";
 
 /**
  * @throws Error if the radio is not found
@@ -146,8 +152,246 @@ function createFeed(songs: { url: string; title: string | null }[]): Block[] {
   return feed;
 }
 
+/**
+ * Preloads all songs in a radio using yt-dlp's batch download feature
+ * @param radioId The ID of the radio
+ * @returns A promise that resolves when all songs are preloaded
+ */
+async function preloadAllSongs(radioId: string): Promise<{
+  totalSongs: number;
+  successful: number;
+  failed: number;
+}> {
+  // Get the radio
+  const radio = await getRadioOrThrow(radioId);
+  
+  // Filter out only song blocks
+  const songBlocks = radio.blocks.filter(block => block.type === "song");
+  
+  if (songBlocks.length === 0) {
+    return { totalSongs: 0, successful: 0, failed: 0 };
+  }
+  
+  console.log(`[Radio ${radioId}] Starting preload of ${songBlocks.length} songs`);
+  
+  // Create a mapping of YouTube URLs to block IDs for tracking
+  const urlToBlockMap = new Map<string, { blockId: string, index: number }>();
+  
+  // Create a temporary file with all YouTube URLs to download
+  const tempDir = path.join(Paths.projectRoot, 'radio-preload');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+  
+  const urlListPath = path.join(tempDir, `${radioId}-urls.txt`);
+  
+  // Write URLs to file
+  const urlsToDownload: string[] = [];
+  for (const block of songBlocks) {
+    if (block.yt?.url) {
+      const blockId = block.id;
+      const blockIndex = radio.blocks.findIndex(b => b.id === blockId);
+      const outputPath = audioManagerService.getBlockAudioPath(blockId, "song");
+      
+      // Skip if file already exists and has content
+      if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
+        console.log(`[Radio ${radioId}] Song ${blockId} already downloaded, skipping`);
+        continue;
+      }
+      
+      urlsToDownload.push(block.yt.url);
+      urlToBlockMap.set(block.yt.url, { blockId, index: blockIndex });
+    }
+  }
+  
+  // If all files already exist, return early
+  if (urlsToDownload.length === 0) {
+    return { 
+      totalSongs: songBlocks.length, 
+      successful: songBlocks.length, 
+      failed: 0 
+    };
+  }
+  
+  // Write URLs to file
+  fs.writeFileSync(urlListPath, urlsToDownload.join('\n'));
+  
+  // Set up counters
+  let successful = songBlocks.length - urlsToDownload.length; // Already downloaded files
+  let failed = 0;
+  
+  return new Promise((resolve) => {
+    // Create a temp directory for downloads
+    const tempDownloadDir = path.join(tempDir, `${radioId}-downloads`);
+    if (!fs.existsSync(tempDownloadDir)) {
+      fs.mkdirSync(tempDownloadDir, { recursive: true });
+    }
+    
+    // Prepare yt-dlp command
+    // -a: batch file with URLs
+    // -f: format (best audio)
+    // -x: extract audio
+    // --audio-format mp3: convert to mp3
+    // -o: output template with path
+    const ytDlpArgs = [
+      '-a', urlListPath,
+      '-f', 'bestaudio',
+      '-x', 
+      '--audio-format', 'mp3',
+      '-o', `${tempDownloadDir}/%(id)s.%(ext)s`,
+      '--restrict-filenames'
+    ];
+    
+    console.log(`[Radio ${radioId}] Running yt-dlp with batch download`);
+    console.log(`[Radio ${radioId}] Command: yt-dlp ${ytDlpArgs.join(' ')}`);
+    console.log(`[Radio ${radioId}] URL list path: ${urlListPath}`);
+    console.log(`[Radio ${radioId}] Temp download dir: ${tempDownloadDir}`);
+    
+    // Execute yt-dlp
+    const ytDlpProcess = spawn('yt-dlp', ytDlpArgs);
+    
+    // Store stdout for logging
+    let stdoutData = '';
+    
+    ytDlpProcess.stdout.on('data', (data) => {
+      const output = data.toString();
+      stdoutData += output;
+      console.log(`[Radio ${radioId}] yt-dlp output: ${output.trim()}`);
+    });
+    
+    ytDlpProcess.stderr.on('data', (data) => {
+      console.error(`[Radio ${radioId}] yt-dlp error: ${data.toString()}`);
+    });
+    
+    ytDlpProcess.on('close', async (code) => {
+      console.log(`[Radio ${radioId}] yt-dlp process exited with code ${code}`);
+      
+      // After download completes, get all the MP3 files in the temp directory
+      const downloadedFiles = fs.readdirSync(tempDownloadDir)
+        .filter(file => file.endsWith('.mp3'))
+        .map(file => path.join(tempDownloadDir, file));
+      
+      console.log(`[Radio ${radioId}] Found ${downloadedFiles.length} downloaded files`);
+      
+      // Extract YouTube IDs from filenames (assuming format is "YTID.mp3")
+      const downloadedYoutubeIds = downloadedFiles.map(filepath => {
+        const filename = path.basename(filepath, '.mp3');
+        return filename;
+      });
+      
+      // Collect mapping data for the downloaded files
+      let videoIdsToBlockIds = new Map<string, string>();
+      
+      // Match downloaded files to blocks by checking video IDs in YouTube URLs
+      for (const [url, { blockId }] of urlToBlockMap.entries()) {
+        // Extract video ID from URL - handling multiple YouTube URL formats
+        let videoId: string | null = null;
+        
+        // Handle youtube.com URLs with v parameter
+        if (url.includes('youtube.com') && url.includes('v=')) {
+          const match = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+          if (match && match[1]) videoId = match[1];
+        } 
+        // Handle youtu.be short URLs
+        else if (url.includes('youtu.be')) {
+          const match = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+          if (match && match[1]) videoId = match[1];
+        }
+        // Handle other formats with a more general regex as fallback
+        else {
+          const match = url.match(/(?:v=|\/|^)([a-zA-Z0-9_-]{11})(?:&|\/|$)/);
+          if (match && match[1]) videoId = match[1];
+        }
+        
+        if (videoId) {
+          console.log(`[Radio ${radioId}] Mapped URL ${url} to video ID ${videoId} for block ${blockId}`);
+          videoIdsToBlockIds.set(videoId, blockId);
+        } else {
+          console.error(`[Radio ${radioId}] Could not extract video ID from URL: ${url}`);
+        }
+      }
+      
+      // Process downloaded files based on video ID matching
+      for (const filepath of downloadedFiles) {
+        const filename = path.basename(filepath, '.mp3');
+        const blockId = videoIdsToBlockIds.get(filename);
+        
+        if (!blockId) {
+          console.error(`[Radio ${radioId}] Could not match file ${filename} to any block`);
+          continue;
+        }
+        
+        const targetPath = audioManagerService.getBlockAudioPath(blockId, "song");
+        
+        // Create target directory if it doesn't exist
+        const targetDir = path.dirname(targetPath);
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+        
+        try {
+          // Copy file to target location
+          fs.copyFileSync(filepath, targetPath);
+          console.log(`[Radio ${radioId}] Successfully copied file to ${targetPath}`);
+          successful++;
+        } catch (error) {
+          console.error(`[Radio ${radioId}] Failed to copy file to ${targetPath}:`, error);
+          failed++;
+        }
+      }
+      
+      // Reset success/failure counters for more accurate counting
+      successful = songBlocks.length - urlsToDownload.length; // Start with previously downloaded files
+      failed = 0;
+      
+      // Track which blocks were successfully processed
+      const successfulBlockIds = new Set<string>();
+      
+      // Count blocks that weren't processed as failures
+      for (const [url, { blockId }] of urlToBlockMap.entries()) {
+        const targetPath = audioManagerService.getBlockAudioPath(blockId, "song");
+        
+        if (fs.existsSync(targetPath) && fs.statSync(targetPath).size > 0) {
+          // This block was processed successfully
+          if (!successfulBlockIds.has(blockId)) {
+            successfulBlockIds.add(blockId);
+            successful++;
+          }
+        } else {
+          // This block either wasn't processed or failed
+          console.error(`[Radio ${radioId}] Block ${blockId} was not successfully downloaded`);
+          failed++;
+        }
+      }
+      
+      const skipCleanup = false; // Clean up temporary files after download
+      
+      if (skipCleanup) {
+        console.log(`[Radio ${radioId}] Skipping cleanup. URL list at: ${urlListPath}`);
+        console.log(`[Radio ${radioId}] Downloaded files in: ${tempDownloadDir}`);
+      } else {
+        console.log(`[Radio ${radioId}] Cleaning up temporary files`);
+        try {
+          fs.unlinkSync(urlListPath);
+          fs.rmSync(tempDownloadDir, { recursive: true, force: true });
+        } catch (error) {
+          console.error(`[Radio ${radioId}] Error cleaning up temp files:`, error);
+        }
+      }
+      
+      console.log(`[Radio ${radioId}] Preload complete. Success: ${successful}, Failed: ${failed}`);
+      resolve({
+        totalSongs: songBlocks.length,
+        successful, 
+        failed
+      });
+    });
+  });
+}
+
 export default {
   createRadio,
   getRadios,
   getRadioOrThrow,
+  preloadAllSongs,
 };
