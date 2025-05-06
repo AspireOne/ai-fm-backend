@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const axios = require("axios");
 const {
   intro,
   outro,
@@ -8,8 +7,6 @@ const {
   isCancel,
   spinner,
   note,
-  text,
-  confirm,
 } = require("@clack/prompts");
 const fs = require("fs");
 const path = require("path");
@@ -17,6 +14,7 @@ const { spawn } = require("child_process");
 const { execSync } = require("child_process");
 const FormData = require("form-data");
 const os = require("os");
+const readline = require("readline");
 
 // Simple color function implementations
 const colors = {
@@ -32,13 +30,16 @@ const colors = {
 
 // Configuration - hardcoded values
 const API_URL = "https://fm-api.matejpesl.cz";
-const TEMP_DIR = path.join(process.cwd(), "ai-fm-temp");
+const TEMP_DIR = path.join(os.tmpdir(), "ai-fm-temp");
 const isWindows = os.platform() === "win32";
 
 async function fetchRadios() {
   try {
-    const response = await axios.get(`${API_URL}/radios`);
-    return response.data;
+    const response = await fetch(`${API_URL}/radios`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return await response.json();
   } catch (error) {
     console.error(colors.red(`Error fetching radios: ${error.message}`));
     if (error.response) {
@@ -51,8 +52,11 @@ async function fetchRadios() {
 
 async function fetchRadioBlocks(radioId) {
   try {
-    const response = await axios.get(`${API_URL}/radios/${radioId}/blocks`);
-    return response.data;
+    const response = await fetch(`${API_URL}/radios/${radioId}/blocks`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return await response.json();
   } catch (error) {
     console.error(colors.red(`Error fetching radio blocks: ${error.message}`));
     if (error.response) {
@@ -71,24 +75,30 @@ function ensureTempDirExists() {
   }
 }
 
-// Clean up temp directory
+// Clean up temp directory (only the files, not the directory itself)
 function cleanupTempDir() {
   if (fs.existsSync(TEMP_DIR)) {
     try {
+      // Ensure the path has 'ai-fm-temp' in it as a safety check
+      if (!TEMP_DIR.includes('ai-fm-temp')) {
+        console.log(`Safety check: Not cleaning temp directory ${TEMP_DIR} as it doesn't contain 'ai-fm-temp'`);
+        return;
+      }
+      
       // Read all files in the directory
       const files = fs.readdirSync(TEMP_DIR);
+      let filesDeleted = 0;
       
-      // Delete each file
+      // Delete each file (only .mp3 files for extra safety)
       for (const file of files) {
         const filePath = path.join(TEMP_DIR, file);
-        if (fs.statSync(filePath).isFile()) {
+        if (fs.statSync(filePath).isFile() && file.endsWith('.mp3')) {
           fs.unlinkSync(filePath);
+          filesDeleted++;
         }
       }
       
-      // Remove the directory
-      fs.rmdirSync(TEMP_DIR);
-      console.log(`Cleaned up temporary directory: ${TEMP_DIR}`);
+      console.log(`Cleaned up temporary files: ${filesDeleted} files deleted from ${TEMP_DIR}`);
     } catch (error) {
       console.error(colors.yellow(`Warning: Could not clean up temp directory: ${error.message}`));
     }
@@ -272,6 +282,7 @@ async function uploadSong(filePath, blockId, radioId) {
   try {
     console.log(`Uploading song for block ${blockId}`);
 
+    // Use the old FormData module with proper node-formdata support
     const form = new FormData();
     form.append("blockId", blockId);
     form.append("radioId", radioId);
@@ -280,14 +291,59 @@ async function uploadSong(filePath, blockId, radioId) {
       contentType: "audio/mpeg",
     });
 
-    const response = await axios.post(`${API_URL}/radios/upload-songs`, form, {
-      headers: form.getHeaders(),
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-    });
+    // Use form.getHeaders() to get the correct Content-Type with boundary
+    // This is required for multipart/form-data uploads
+    const formHeaders = form.getHeaders();
 
-    console.log(`Uploaded song for block ${blockId}`);
-    return response.data;
+    // Use form.pipe with node's http module as a fallback
+    // This provides more reliable multipart/form-data uploads across Node versions
+    return new Promise((resolve, reject) => {
+      const url = new URL(`${API_URL}/radios/upload-songs`);
+      const options = {
+        method: 'POST',
+        headers: formHeaders,
+        host: url.hostname,
+        port: url.port || (url.protocol === 'https:' ? 443 : 80),
+        path: url.pathname,
+        protocol: url.protocol
+      };
+
+      // Create the appropriate request object based on protocol
+      const req = url.protocol === 'https:' 
+        ? require('https').request(options)
+        : require('http').request(options);
+      
+      // Handle response
+      req.on('response', (res) => {
+        // Get the response data
+        let data = '';
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            try {
+              console.log(`Uploaded song for block ${blockId}`);
+              resolve(JSON.parse(data));
+            } catch (e) {
+              console.error(`JSON parse error: ${e.message}`);
+              reject(new Error(`Error parsing response: ${e.message}`));
+            }
+          } else {
+            reject(new Error(`HTTP error: ${res.statusCode} ${res.statusMessage}`));
+          }
+        });
+      });
+      
+      // Handle request errors
+      req.on('error', (err) => {
+        reject(err);
+      });
+      
+      // Pipe the form data to the request
+      form.pipe(req);
+    });
   } catch (error) {
     console.error(
       colors.red(`Error uploading song for block ${blockId}: ${error.message}`),
@@ -342,31 +398,6 @@ function printBlocks(blocks, radioTitle) {
       `${index + 1}. [${blockType}] ID: ${block.id} ${downloadStatus} ${details}`,
     );
   });
-}
-
-// Trigger a server-side preload of all songs
-async function preloadAllSongs(radioId) {
-  try {
-    const s = spinner();
-    s.start("Preloading all songs on the server...");
-
-    const response = await axios.post(`${API_URL}/radios/${radioId}/preload-all-songs`);
-    s.stop("Preload request completed");
-
-    console.log(colors.green("\nPreload results:"));
-    console.log(`Total songs: ${response.data.totalSongs}`);
-    console.log(`Successfully downloaded: ${response.data.successful}`);
-    console.log(`Failed: ${response.data.failed}`);
-
-    return response.data;
-  } catch (error) {
-    console.error(colors.red(`Error preloading songs: ${error.message}`));
-    if (error.response) {
-      console.error(colors.red(`Status: ${error.response.status}`));
-      console.error(colors.red(`Data: ${JSON.stringify(error.response.data)}`));
-    }
-    throw error;
-  }
 }
 
 async function main() {
@@ -517,29 +548,58 @@ async function main() {
   } finally {
     // Clean up temporary files
     cleanupTempDir();
-    outro("Thanks for using AI FM Radio Downloader");
+    outro("Let's fucking go! Nonstop pop never dies!");
+
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    rl.question("\nPress ENTER to exit... (or do whatever the fuck you want im not your mom)", () => {
+      rl.close();
+    });
   }
 }
 
-// API URL and temp directory are now hardcoded
+// Create a package.json file if it doesn't exist
+// Add this to package.json:
+// {
+//   "name": "ai-fm-radio-downloader",
+//   "version": "1.0.0",
+//   "description": "Download and upload songs for AI FM Radio",
+//   "main": "song-cli.js",
+//   "engines": {
+//     "node": ">=14.0.0"
+//   },
+//   "dependencies": {
+//     "@clack/prompts": "^0.10.1",
+//     "axios": "^1.9.0",
+//     "form-data": "^4.0.2"
+//   }
+// }
 
 // Show help if requested
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log(`
 AI FM Radio Downloader
 
-Usage: node download-upload-songs.js [options]
+Usage: node song-cli.js [options]
 
 Features:
   - Download and upload missing songs from YouTube
 
 Options:
-  (API URL is hardcoded to http://localhost:5000)
-  (Temp directory is hardcoded to ./ai-fm-temp)
+  (API URL is hardcoded to ${API_URL})
+  (Temp directory is using system temp: ${TEMP_DIR})
   -h, --help       Show this help message
   `);
   process.exit(0);
 }
 
 // Run the main function
-main();
+main().catch(error => {
+  console.error(colors.red(`Fatal error: ${error.message}`));
+  // Ensure cleanup happens even on unhandled errors
+  cleanupTempDir();
+  process.exit(1);
+});

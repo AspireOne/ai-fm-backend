@@ -12,7 +12,7 @@
   },
   "bin": {
     "fm": "dist/index.js",
-    "aifm-cli": "./song-cli.js"
+    "song-cli": "./song-cli.js"
   },
   "scripts": {
     "start": "npx tsx src/index.ts --",
@@ -25,8 +25,9 @@
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
-    "bundle-cli": "npx esbuild song-cli.js --bundle --outfile=ai-fm.js --platform=node",
-    "package-cli": "pkg .\\song-cli.js",
+    "bundle-cli": "npx esbuild song-cli.js --bundle --outfile=.\\bin\\bundled-cli.js --platform=node",
+    "package-cli": "pkg .\\bin\\bundled-cli.js --out-path .\\bin",
+    "bundle-package-cli": "pnpm bundle-cli && pnpm package-cli",
     "db:sync": "kysely-codegen --dialect postgres && npx tsx src/helpers/generate-db-schema.ts",
     "migrate": "npx tsx src/helpers/migrate-latest.ts && pnpm db:sync",
     "migrate:create": "npx tsx src/helpers/migrate-cli.ts create",
@@ -35,6 +36,10 @@
     "migrate:latest": "npx tsx src/helpers/migrate-cli.ts latest && pnpm db:sync",
     "migrate:up": "npx tsx src/helpers/migrate-cli.ts up && pnpm db:sync",
     "migrate:down": "npx tsx src/helpers/migrate-cli.ts down && pnpm db:sync"
+  },
+  "pkg": {
+    "output": "packages",
+    "out-path": "packages"
   },
   "keywords": [],
   "author": "",

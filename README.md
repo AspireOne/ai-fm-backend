@@ -39,6 +39,23 @@ For Windows:
 1. Install FFmpeg: Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH
 2. Install yt-dlp: `pip install yt-dlp` or download the executable from [yt-dlp releases](https://github.com/yt-dlp/yt-dlp/releases)
 
+### Song Download Tools
+
+Several Node.js scripts are included to help with song management:
+
+- **song-cli.js** - Interactive CLI tool for downloading and uploading songs:
+  - Requires Node.js 14 or later
+  - Dependencies: `@clack/prompts`, `form-data`
+  - Pre-built binaries available in `.bin` directory
+  
+- **upload-songs.js** - CLI tool for uploading individual songs
+  - Dependencies: `axios`, `form-data`
+  
+- **forward-radio.js** - CLI tool for forwarding songs from a local instance to a remote server
+  - Dependencies: `axios`
+
+The interactive `song-cli.js` tool handles the YouTube download and upload process in one step and is the recommended option for most users.
+
 ```bash
 # Install dependencies
 pnpm install
@@ -58,11 +75,32 @@ pnpm migrate:down
 
 ## Handling YouTube Songs
 
-YouTube blocks song downloads from many server IP addresses. To work around this limitation, the project includes utilities for manually uploading songs:
+YouTube blocks song downloads from many server IP addresses. To work around this limitation, the project includes utilities for manually downloading and uploading songs:
 
-### Manual Song Upload
+### Interactive Song Downloader (Recommended)
 
-Two scripts are available for handling songs:
+The easiest way to download and upload songs is with the interactive CLI tool:
+
+```bash
+# Install dependencies
+npm install @clack/prompts form-data
+
+# Run the interactive CLI
+node song-cli.js
+```
+
+This interactive tool will:
+- Connect to the API server
+- Show you a list of available radios
+- Download all missing songs for the selected radio
+- Upload them to the server
+- Handle everything automatically with a friendly interface
+
+Pre-built binaries are also available in the `.bin` directory for Windows, macOS, and Linux.
+
+### Manual Song Upload Tools
+
+If you need more fine-grained control, these additional scripts are available:
 
 1. **upload-songs.js** - Upload individual songs to the server:
 
@@ -109,11 +147,15 @@ Two scripts are available for handling songs:
    node forward-radio.js radio-id
    ```
 
-This workflow allows you to:
+## Why these tools exist
 
-1. Download songs on a machine that isn't blocked by YouTube (using preload-all-songs endpoint)
-2. Forward those songs (from your downloaded_files directory) to your production server
-3. All songs are properly organized with correct block IDs
+Since many server hosting providers have IP addresses that YouTube blocks for automated downloads, you'll often need to:
+
+1. Run these tools on your local machine (which is less likely to be blocked)
+2. Download the songs through your home/office internet connection
+3. Upload them to the server
+
+All these tools facilitate this workflow, with the interactive `song-cli.js` being the most user-friendly option.
 
 ## Project Structure
 
