@@ -4,16 +4,23 @@ A Fastify-based backend service that powers dynamic radio streaming experiences.
 
 ## Overview
 
-Nonstop FM Backend provides a complete infrastructure for building personalized radio experiences:
+Nonstop FM Backend provides a complete infrastructure for building personalized radio experiences with AI narration and sweeper:
 
-- **Dynamic Radio Creation**: Create radio stations with customizable playlists and configurations
-- **AI Voice Integration**: Generate natural-sounding DJ voiceovers between songs
+- **Dynamic Radio Creation**: Create radio stations from youtube songs, with customizable DJs (voice, personality), playlist, name, and more
+- **AI Voice Integration**: Generate natural-sounding DJ moderator segments between songs that is aware of the songs playing
+- **We have multiplayer**: Listen in more people at the same time - Real-time webcoket control and state updates for connected clients
+- ***YouTube Integration**: Download audio from YouTube for inclusion in radio stations
 - **Audio Management**: Handle song downloads, storage, and streaming
-- **WebSocket Communication**: Real-time control and state updates for connected clients
-- **YouTube Integration**: Download audio from YouTube for inclusion in radio stations
-- **CLI tool for song download/upload**: Automatically download and upload songs for a radio locally, to work around server IP blocks 
+- **CLI tool for song download/upload**: Automatically download and upload songs for a radio locally, to work around server IP blocks
 
-The service is built on Fastify for high performance with a modular architecture that separates concerns and allows for easy extension.
+
+
+https://github.com/user-attachments/assets/fdb1777d-4538-4216-ae44-371f8db6f271
+
+https://github.com/user-attachments/assets/278757f1-e755-4415-b139-52a71d4ca25a
+
+
+
 
 ## Development
 
