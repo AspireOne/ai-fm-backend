@@ -11,7 +11,8 @@
     "node": ">=22.0.0"
   },
   "bin": {
-    "fm": "dist/index.js"
+    "fm": "dist/index.js",
+    "aifm-cli": "./song-cli.js"
   },
   "scripts": {
     "start": "npx tsx src/index.ts --",
@@ -24,7 +25,8 @@
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
-    "bundle-song-cli": "npx esbuild song-cli.js --bundle --outfile=ai-fm.js --platform=node",
+    "bundle-cli": "npx esbuild song-cli.js --bundle --outfile=ai-fm.js --platform=node",
+    "package-cli": "pkg .\\song-cli.js",
     "db:sync": "kysely-codegen --dialect postgres && npx tsx src/helpers/generate-db-schema.ts",
     "migrate": "npx tsx src/helpers/migrate-latest.ts && pnpm db:sync",
     "migrate:create": "npx tsx src/helpers/migrate-cli.ts create",

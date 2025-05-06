@@ -11,3 +11,6 @@ downloaded_files/
 *-player-script.js
 /radio-preload
 /ai-fm-temp
+song-cli-linux
+song-cli-macos
+song-cli-win.exe
