@@ -11559,6 +11559,40 @@ function checkRequiredTools() {
   }
   return allToolsAvailable;
 }
+async function getYoutubeTitle(youtubeUrl) {
+  return new Promise((resolve, reject) => {
+    console.log(`Fetching title for ${youtubeUrl}`);
+    const args2 = [
+      youtubeUrl,
+      "--get-title",
+      "--no-download",
+      "--skip-download"
+    ];
+    const process2 = spawn("yt-dlp", args2);
+    let stdout = "";
+    let stderr = "";
+    process2.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+    process2.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+    process2.on("close", (code) => {
+      if (code === 0) {
+        const title = stdout.trim();
+        console.log(`Title fetched: ${title}`);
+        resolve(title);
+      } else {
+        console.error(`Title fetch failed: ${stderr}`);
+        resolve(null);
+      }
+    });
+    process2.on("error", (err) => {
+      console.error(`Failed to start yt-dlp for title: ${err.message}`);
+      resolve(null);
+    });
+  });
+}
 async function downloadSong(youtubeUrl, outputPath) {
   return new Promise((resolve, reject) => {
     console.log(`Downloading ${youtubeUrl}`);
@@ -11601,12 +11635,15 @@ async function downloadSong(youtubeUrl, outputPath) {
     });
   });
 }
-async function uploadSong(filePath, blockId, radioId) {
+async function uploadSong(filePath, blockId, radioId, title) {
   try {
-    console.log(`Uploading song for block ${blockId}`);
+    console.log(`Uploading song for block ${blockId}${title ? ` with title "${title}"` : ""}`);
     const form = new FormData();
     form.append("blockId", blockId);
     form.append("radioId", radioId);
+    if (title) {
+      form.append("title", title);
+    }
     form.append("file", fs.createReadStream(filePath), {
       filename: path.basename(filePath),
       contentType: "audio/mpeg"
@@ -11730,13 +11767,27 @@ Fetching blocks for radio: ${selectedRadio.title} (${selectedRadio.id})...`
 Processing song ${index + 1}/${songsToProcess.length}: ${block.yt.title || "Untitled"}`
         );
         const outputPath = path.join(TEMP_DIR, `${block.id}.mp3`);
+        let title = null;
+        const titleSpinner = spinner();
+        titleSpinner.start("Fetching song title from YouTube...");
+        try {
+          title = await getYoutubeTitle(block.yt.url);
+          if (title) {
+            titleSpinner.stop(`Title fetched: "${title}"`);
+          } else {
+            titleSpinner.stop("Could not fetch title");
+          }
+        } catch (error) {
+          titleSpinner.stop("Failed to fetch title");
+          console.error(colors.yellow(`Error fetching title: ${error.message}`));
+        }
         const s2 = spinner();
         s2.start("Downloading song from YouTube...");
         await downloadSong(block.yt.url, outputPath);
         stats.downloaded++;
         s2.stop("Download complete");
-        s2.start("Uploading song to server...");
-        await uploadSong(outputPath, block.id, selectedRadio.id);
+        s2.start(`Uploading song to server${title ? " with title" : ""}...`);
+        await uploadSong(outputPath, block.id, selectedRadio.id, title);
         stats.uploaded++;
         s2.stop("Upload complete");
         fs.unlinkSync(outputPath);

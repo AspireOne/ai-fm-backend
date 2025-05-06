@@ -167,6 +167,7 @@ export function registerRadioController(_fastify: FastifyInstance) {
         let filename = "";
         let blockId = "";
         let radioId = "";
+        let title: string | null = null;
 
         // Process each part
         for await (const part of parts) {
@@ -180,6 +181,9 @@ export function registerRadioController(_fastify: FastifyInstance) {
             }
             if (part.fieldname === "radioId") {
               radioId = part.value as string;
+            }
+            if (part.fieldname === "title") {
+              title = part.value as string;
             }
           }
         }
@@ -207,6 +211,7 @@ export function registerRadioController(_fastify: FastifyInstance) {
           radioId,
           fileBuffer: buffer,
           filename: filename,
+          title: title
         });
 
         // Save the uploaded songs

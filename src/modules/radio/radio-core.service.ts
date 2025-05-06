@@ -68,11 +68,13 @@ async function getRadios(): Promise<RadiosResponse> {
 }
 
 async function createRadio(props: CreateRadioInputSchema) {
-  const withTitles = await ytService.fetchTitles(props.songs);
-  if (!withTitles.some((s) => s.title)) {
-    throw new Error("Could not fetch title for any song.");
-  }
-  const feed = createFeed(withTitles);
+  // Skip title fetching as YT blocked yt-dlp, set all titles to null
+  const songsWithNullTitles = props.songs.map(song => ({
+    url: song.url,
+    title: null
+  }));
+  
+  const feed = createFeed(songsWithNullTitles);
 
   let voiceId = props.voice_id;
   const voiceDescription =
@@ -397,7 +399,7 @@ async function preloadAllSongs(radioId: string): Promise<{
  * @param props Object containing the songs to upload
  * @returns Result of the upload operation
  */
-async function uploadSongs(props: { songs: Array<{ blockId: string, radioId: string, fileBuffer: Buffer, filename: string }> }): Promise<{
+async function uploadSongs(props: { songs: Array<{ blockId: string, radioId: string, fileBuffer: Buffer, filename: string, title?: string | null }> }): Promise<{
   totalSongs: number;
   successful: number;
   failed: {
@@ -413,7 +415,7 @@ async function uploadSongs(props: { songs: Array<{ blockId: string, radioId: str
 
   // Process each song
   for (const song of props.songs) {
-    const { blockId, radioId, fileBuffer, filename } = song;
+    const { blockId, radioId, fileBuffer, filename, title } = song;
     
     try {
       // Verify the radio exists and the block belongs to it
@@ -448,6 +450,36 @@ async function uploadSongs(props: { songs: Array<{ blockId: string, radioId: str
       // Write the file
       fs.writeFileSync(targetPath, fileBuffer);
       console.log(`[Radio ${radioId}] Saved uploaded song for block ${blockId} to ${targetPath}`);
+      
+      // Update the block with the title if provided
+      if (title) {
+        // Get the radio's blocks
+        const blocks = [...radio.blocks];
+        const blockIndex = blocks.findIndex(b => b.id === blockId);
+        
+        if (blockIndex !== -1 && blocks[blockIndex].type === "song") {
+          // Clone the block to modify
+          const updatedBlock = {
+            ...blocks[blockIndex],
+            yt: {
+              ...blocks[blockIndex].yt,
+              url: blocks[blockIndex].yt?.url || "", // Ensure URL is not undefined
+              title
+            }
+          };
+          
+          // Update blocks array
+          blocks[blockIndex] = updatedBlock;
+          
+          // Save the updated blocks back to the database
+          await db.updateTable("radios")
+            .set({ blocks: JSON.stringify(blocks) })
+            .where("id", "=", radioId)
+            .execute();
+          
+          console.log(`[Radio ${radioId}] Updated block ${blockId} with title: "${title}"`);
+        }
+      }
       
       results.successful++;
     } catch (error) {

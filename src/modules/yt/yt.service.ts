@@ -29,13 +29,9 @@ async function downloadYoutubeAudio(
       outputPath,
       // Add other options as needed
     ];
-    if (Paths.ytCookies) {
-      args.push("--cookies");
-      args.push(Paths.ytCookies);
-    }
 
     console.log(
-      `Running yt-dlp with URL: ${youtubeUrl} (with cookies?: ${!!Paths.ytCookies})`,
+      `Running yt-dlp with URL: ${youtubeUrl}`,
     );
 
     // Spawn the yt-dlp process
