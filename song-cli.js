@@ -17,7 +17,6 @@ const { spawn } = require("child_process");
 const { execSync } = require("child_process");
 const FormData = require("form-data");
 const os = require("os");
-const https = require("https");
 
 // Simple color function implementations
 const colors = {
@@ -32,14 +31,9 @@ const colors = {
 };
 
 // Configuration - hardcoded values
-const API_URL = "https://fm.matejpesl.cz";
+const API_URL = "https://fm-api.matejpesl.cz";
 const TEMP_DIR = path.join(process.cwd(), "ai-fm-temp");
-const TOOLS_DIR = path.join(TEMP_DIR, "tools");
 const isWindows = os.platform() === "win32";
-
-// Binaries paths
-let ytDlpPath = "yt-dlp" + (isWindows ? ".exe" : "");
-let ffmpegPath = "ffmpeg" + (isWindows ? ".exe" : "");
 
 async function fetchRadios() {
   try {
@@ -75,165 +69,147 @@ function ensureTempDirExists() {
     fs.mkdirSync(TEMP_DIR, { recursive: true });
     console.log(`Created temporary directory: ${TEMP_DIR}`);
   }
+}
 
-  if (!fs.existsSync(TOOLS_DIR)) {
-    fs.mkdirSync(TOOLS_DIR, { recursive: true });
-    console.log(`Created tools directory: ${TOOLS_DIR}`);
+// Clean up temp directory
+function cleanupTempDir() {
+  if (fs.existsSync(TEMP_DIR)) {
+    try {
+      // Read all files in the directory
+      const files = fs.readdirSync(TEMP_DIR);
+      
+      // Delete each file
+      for (const file of files) {
+        const filePath = path.join(TEMP_DIR, file);
+        if (fs.statSync(filePath).isFile()) {
+          fs.unlinkSync(filePath);
+        }
+      }
+      
+      // Remove the directory
+      fs.rmdirSync(TEMP_DIR);
+      console.log(`Cleaned up temporary directory: ${TEMP_DIR}`);
+    } catch (error) {
+      console.error(colors.yellow(`Warning: Could not clean up temp directory: ${error.message}`));
+    }
   }
 }
 
 // Check if a command is available in the system
 function isCommandAvailable(command) {
   try {
-    const nullOutput = isWindows ? "NUL" : "/dev/null";
-    execSync(`${command} --version > ${nullOutput} 2>&1`);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-// Download a file from a URL to a specific path
-function downloadFile(url, destination) {
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(destination);
-
-    https
-      .get(url, (response) => {
-        if (response.statusCode !== 200) {
-          reject(new Error(`Failed to download file: ${response.statusCode}`));
-          return;
-        }
-
-        response.pipe(file);
-
-        file.on("finish", () => {
-          file.close();
-          resolve(destination);
-        });
-      })
-      .on("error", (err) => {
-        fs.unlink(destination, () => {}); // Delete the file if there was an error
-        reject(err);
-      });
-  });
-}
-
-// Download yt-dlp
-async function downloadYtDlp() {
-  const s = spinner();
-  s.start("Downloading yt-dlp...");
-
-  try {
-    let url;
-    let localPath = path.join(TOOLS_DIR, "yt-dlp" + (isWindows ? ".exe" : ""));
-
-    if (isWindows) {
-      url = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
-    } else {
-      url = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp";
-    }
-
-    await downloadFile(url, localPath);
-
-    // Make it executable on Linux/Mac
-    if (!isWindows) {
-      fs.chmodSync(localPath, 0o755);
-    }
-
-    ytDlpPath = localPath;
-    s.stop("yt-dlp downloaded successfully");
-    return true;
-  } catch (error) {
-    s.stop("Failed to download yt-dlp");
-    console.error(colors.red(`Error downloading yt-dlp: ${error.message}`));
-    return false;
-  }
-}
-
-// Download ffmpeg
-async function downloadFfmpeg() {
-  const s = spinner();
-  s.start("Downloading ffmpeg...");
-
-  try {
-    let url;
-    let localPath = path.join(TOOLS_DIR, "ffmpeg" + (isWindows ? ".exe" : ""));
-
-    // Note: These URLs might change over time - these are just examples
-    if (isWindows) {
-      url =
-        "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip";
-
-      // For Windows we need to download a zip and extract it
-      const zipPath = path.join(TOOLS_DIR, "ffmpeg.zip");
-      await downloadFile(url, zipPath);
-
-      // Use a simple approach - download a small static build instead of dealing with zip extraction
-      // For a production app, you'd want to handle zip extraction properly
-      s.stop(
-        "For Windows, please download ffmpeg manually from https://ffmpeg.org/download.html",
-      );
-      console.log(
-        colors.yellow("Please install ffmpeg manually on Windows and try again."),
-      );
-      return false;
-    } else {
-      // For Linux, let's try to use apt-get as an example
+    // Different check methods based on command
+    if (command === 'ffmpeg') {
+      // For ffmpeg, try different approaches
       try {
-        s.stop("Attempting to install ffmpeg via system package manager...");
-        if (os.platform() === "linux") {
-          execSync("sudo apt-get update && sudo apt-get install -y ffmpeg");
-          console.log(colors.green("ffmpeg installed successfully with apt-get"));
-          return true;
-        } else if (os.platform() === "darwin") {
-          execSync("brew install ffmpeg");
-          console.log(colors.green("ffmpeg installed successfully with brew"));
-          return true;
-        }
+        // Try version flag first (most common)
+        const nullOutput = isWindows ? "NUL" : "/dev/null";
+        execSync(`${command} -version > ${nullOutput} 2>&1`);
+        return true;
       } catch (e) {
-        console.log(
-          colors.yellow(
-            "Could not install ffmpeg with package manager. Please install manually.",
-          ),
-        );
-        return false;
+        try {
+          // Some ffmpeg builds use --version
+          execSync(`${command} --version > ${isWindows ? "NUL" : "/dev/null"} 2>&1`);
+          return true;
+        } catch (e2) {
+          try {
+            // Last resort - just try to run it with -h
+            execSync(`${command} -h > ${isWindows ? "NUL" : "/dev/null"} 2>&1`);
+            return true;
+          } catch (e3) {
+            return false;
+          }
+        }
       }
+    } else {
+      // For other commands like yt-dlp
+      const nullOutput = isWindows ? "NUL" : "/dev/null";
+      execSync(`${command} --version > ${nullOutput} 2>&1`);
+      return true;
     }
   } catch (error) {
-    s.stop("Failed to download ffmpeg");
-    console.error(colors.red(`Error downloading ffmpeg: ${error.message}`));
     return false;
   }
 }
 
-// Ensure both tools are available
-async function ensureToolsAvailable() {
+// Show yt-dlp installation instructions
+function showYtDlpInstructions() {
+  console.log(colors.yellow("\nyt-dlp installation instructions:"));
+  
+  if (isWindows) {
+    console.log(colors.cyan("\nFor Windows:"));
+    console.log("\nOption 1 - Using pip (Python package manager):");
+    console.log("  > python3 -m pip install -U \"yt-dlp[default]\"");
+    console.log("Option 2 - Using winget:");
+    console.log("  > winget install -e --id yt-dlp.yt-dlp");
+    console.log("Option 3 - Manual download:");
+    console.log("  1. Download from https://github.com/yt-dlp/yt-dlp/releases/tag/2025.04.30");
+    console.log("  2. Rename the file to yt-dlp.exe");
+    console.log("  3. Move it to a directory in your PATH (or add its location to PATH)");
+  } else if (os.platform() === "darwin") {
+    console.log(colors.cyan("\nFor macOS:"));
+    console.log("  $ brew install yt-dlp");
+  } else if (os.platform() === "linux") {
+    console.log(colors.cyan("\nFor Linux:"));
+    console.log("Option 1 - Using pip (Python package manager):");
+    console.log("  $ python3 -m pip install -U \"yt-dlp[default]\"");
+    console.log("\nOption 2 - Direct download:");
+    console.log("  $ curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp");
+    console.log("  $ chmod a+rx ~/.local/bin/yt-dlp");
+  }
+  
+  console.log(colors.yellow("\nAfter installing, make sure yt-dlp is in your PATH and restart this script."));
+}
+
+// Show ffmpeg installation instructions
+function showFfmpegInstructions() {
+  console.log(colors.yellow("\nffmpeg installation instructions:"));
+  
+  if (isWindows) {
+    console.log(colors.cyan("\nFor Windows:"));
+    console.log("Option 1 - Using winget (probably as admin and restart terminal):");
+    console.log("  > winget install --id Gyan.FFmpeg");
+    console.log("\nOption 2 - Manual download:");
+    console.log("  1. Download ffmpeg from https://ffmpeg.org/download.html");
+    console.log("  2. Extract the archive and add the bin folder to your PATH");
+  } 
+  else if (os.platform() === "darwin") {
+    console.log(colors.cyan("\nFor macOS:"));
+    console.log("  $ brew install ffmpeg");
+  } 
+  else if (os.platform() === "linux") {
+    console.log(colors.cyan("\nFor Linux (Ubuntu/Debian):"));
+    console.log("  $ sudo apt install ffmpeg");
+    console.log(colors.cyan("\nFor other Linux distributions:"));
+    console.log("  Please use your distribution's package manager to install ffmpeg");
+  }
+  
+  console.log(colors.yellow("\nAfter installing, make sure ffmpeg is in your PATH and restart this script."));
+}
+
+// Check if required tools are available
+function checkRequiredTools() {
   const ytDlpAvailable = isCommandAvailable("yt-dlp");
   const ffmpegAvailable = isCommandAvailable("ffmpeg");
 
-  console.log(`yt-dlp available: ${ytDlpAvailable}`);
-  console.log(`ffmpeg available: ${ffmpegAvailable}`);
+  console.log(`yt-dlp available in PATH: ${ytDlpAvailable}`);
+  console.log(`ffmpeg available in PATH: ${ffmpegAvailable}`);
 
-  let success = true;
+  let allToolsAvailable = true;
 
   if (!ytDlpAvailable) {
-    const downloaded = await downloadYtDlp();
-    if (!downloaded) {
-      console.error(colors.red("Cannot proceed without yt-dlp."));
-      success = false;
-    }
+    console.error(colors.red("yt-dlp is not installed or not in PATH."));
+    showYtDlpInstructions();
+    allToolsAvailable = false;
   }
 
   if (!ffmpegAvailable) {
-    const downloaded = await downloadFfmpeg();
-    if (!downloaded) {
-      console.error(colors.red("Cannot proceed without ffmpeg."));
-      success = false;
-    }
+    console.error(colors.red("ffmpeg is not installed or not in PATH."));
+    showFfmpegInstructions();
+    allToolsAvailable = false;
   }
 
-  return success;
+  return allToolsAvailable;
 }
 
 // Download song using yt-dlp
@@ -254,7 +230,7 @@ async function downloadSong(youtubeUrl, outputPath) {
     ];
 
     // Spawn the yt-dlp process
-    const process = spawn(ytDlpPath, args);
+    const process = spawn("yt-dlp", args);
 
     let stderr = "";
 
@@ -401,22 +377,6 @@ async function main() {
     // Ensure temp directory exists
     ensureTempDirExists();
 
-    // Check and download required tools if needed
-    const s = spinner();
-    s.start("Checking for required tools...");
-    const toolsAvailable = await ensureToolsAvailable();
-    s.stop("Tools check completed");
-
-    if (!toolsAvailable) {
-      note(
-        colors.red(
-          "Required tools are missing. Please install yt-dlp and ffmpeg manually.",
-        ),
-        "Error",
-      );
-      process.exit(1);
-    }
-
     // Fetch radios
     console.log("Fetching available radios...");
     const radios = await fetchRadios();
@@ -448,7 +408,7 @@ async function main() {
       `\nFetching blocks for radio: ${selectedRadio.title} (${selectedRadio.id})...`,
     );
     const radioData = await fetchRadioBlocks(selectedRadio.id);
-
+    
     // Filter song blocks
     const songBlocks = radioData.blocks.filter((block) => block.type === "song");
     console.log(`Found ${songBlocks.length} song blocks total`);
@@ -465,6 +425,22 @@ async function main() {
     if (songsToProcess.length === 0) {
       note(colors.green("All songs are already downloaded!"), "Complete");
       process.exit(0);
+    }
+    
+    // Only check for required tools if we have songs to download
+    const s = spinner();
+    s.start("Checking for required tools...");
+    const toolsAvailable = checkRequiredTools();
+    s.stop("Tools check completed");
+
+    if (!toolsAvailable) {
+      note(
+        colors.red(
+          "Required tools are missing. Please install yt-dlp and ffmpeg following the instructions above."
+        ),
+        "Error"
+      );
+      process.exit(1);
     }
 
     // Stats for tracking progress
@@ -539,6 +515,8 @@ async function main() {
     console.error(colors.red(`An error occurred: ${error.message}`));
     process.exit(1);
   } finally {
+    // Clean up temporary files
+    cleanupTempDir();
     outro("Thanks for using AI FM Radio Downloader");
   }
 }
