@@ -28,8 +28,27 @@ const colors = {
   italic: (text) => `\x1b[3m${text}\x1b[0m`,
 };
 
-// Configuration - hardcoded values
-const API_URL = "https://fm-api.matejpesl.cz";
+// Parse command-line arguments
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const options = {};
+  
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    
+    if (arg === '--api-url' && i + 1 < args.length) {
+      options.apiUrl = args[i + 1];
+      i++; // Skip the next argument as it's the value
+    }
+  }
+  
+  return options;
+}
+
+// Configuration
+const DEFAULT_API_URL = "https://fm-api.matejpesl.cz";
+const args = parseArgs();
+const API_URL = args.apiUrl || DEFAULT_API_URL;
 const TEMP_DIR = path.join(os.tmpdir(), "ai-fm-temp");
 const isWindows = os.platform() === "win32";
 
@@ -589,7 +608,7 @@ Features:
   - Download and upload missing songs from YouTube
 
 Options:
-  (API URL is hardcoded to ${API_URL})
+  --api-url URL    Specify a custom API URL (default: ${DEFAULT_API_URL})
   (Temp directory is using system temp: ${TEMP_DIR})
   -h, --help       Show this help message
   `);

@@ -1154,8 +1154,8 @@ var require_delayed_stream = __commonJS({
     };
     DelayedStream.prototype.release = function() {
       this._released = true;
-      this._bufferedEvents.forEach(function(args) {
-        this.emit.apply(this, args);
+      this._bufferedEvents.forEach(function(args2) {
+        this.emit.apply(this, args2);
       }.bind(this));
       this._bufferedEvents = [];
     };
@@ -1164,16 +1164,16 @@ var require_delayed_stream = __commonJS({
       this.resume();
       return r;
     };
-    DelayedStream.prototype._handleEmit = function(args) {
+    DelayedStream.prototype._handleEmit = function(args2) {
       if (this._released) {
-        this.emit.apply(this, args);
+        this.emit.apply(this, args2);
         return;
       }
-      if (args[0] === "data") {
-        this.dataSize += args[1].length;
+      if (args2[0] === "data") {
+        this.dataSize += args2[1].length;
         this._checkIfMaxDataSizeExceeded();
       }
-      this._bufferedEvents.push(args);
+      this._bufferedEvents.push(args2);
     };
     DelayedStream.prototype._checkIfMaxDataSizeExceeded = function() {
       if (this._maxDataSizeExceeded) {
@@ -10501,13 +10501,13 @@ var require_implementation = __commonJS({
       if (typeof target !== "function" || toStr.apply(target) !== funcType) {
         throw new TypeError(ERROR_MESSAGE + target);
       }
-      var args = slicy(arguments, 1);
+      var args2 = slicy(arguments, 1);
       var bound;
       var binder = function() {
         if (this instanceof bound) {
           var result = target.apply(
             this,
-            concatty(args, arguments)
+            concatty(args2, arguments)
           );
           if (Object(result) === result) {
             return result;
@@ -10516,10 +10516,10 @@ var require_implementation = __commonJS({
         }
         return target.apply(
           that,
-          concatty(args, arguments)
+          concatty(args2, arguments)
         );
       };
-      var boundLength = max(0, target.length - args.length);
+      var boundLength = max(0, target.length - args2.length);
       var boundArgs = [];
       for (var i = 0; i < boundLength; i++) {
         boundArgs[i] = "$" + i;
@@ -10590,11 +10590,11 @@ var require_call_bind_apply_helpers = __commonJS({
     var $TypeError = require_type();
     var $call = require_functionCall();
     var $actualApply = require_actualApply();
-    module2.exports = function callBindBasic(args) {
-      if (args.length < 1 || typeof args[0] !== "function") {
+    module2.exports = function callBindBasic(args2) {
+      if (args2.length < 1 || typeof args2[0] !== "function") {
         throw new $TypeError("a function is required");
       }
-      return $actualApply(bind, $call, args);
+      return $actualApply(bind, $call, args2);
     };
   }
 });
@@ -11390,7 +11390,21 @@ var colors = {
   bold: (text) => `\x1B[1m${text}\x1B[0m`,
   italic: (text) => `\x1B[3m${text}\x1B[0m`
 };
-var API_URL = "https://fm-api.matejpesl.cz";
+function parseArgs() {
+  const args2 = process.argv.slice(2);
+  const options = {};
+  for (let i = 0; i < args2.length; i++) {
+    const arg = args2[i];
+    if (arg === "--api-url" && i + 1 < args2.length) {
+      options.apiUrl = args2[i + 1];
+      i++;
+    }
+  }
+  return options;
+}
+var DEFAULT_API_URL = "https://fm-api.matejpesl.cz";
+var args = parseArgs();
+var API_URL = args.apiUrl || DEFAULT_API_URL;
 var TEMP_DIR = path.join(os.tmpdir(), "ai-fm-temp");
 var isWindows = os.platform() === "win32";
 async function fetchRadios() {
@@ -11548,7 +11562,7 @@ function checkRequiredTools() {
 async function downloadSong(youtubeUrl, outputPath) {
   return new Promise((resolve, reject) => {
     console.log(`Downloading ${youtubeUrl}`);
-    const args = [
+    const args2 = [
       youtubeUrl,
       "-x",
       // Extract audio
@@ -11560,7 +11574,7 @@ async function downloadSong(youtubeUrl, outputPath) {
       "-o",
       outputPath
     ];
-    const process2 = spawn("yt-dlp", args);
+    const process2 = spawn("yt-dlp", args2);
     let stderr = "";
     process2.stdout.on("data", (data) => {
       const output = data.toString().trim();
@@ -11773,7 +11787,7 @@ Features:
   - Download and upload missing songs from YouTube
 
 Options:
-  (API URL is hardcoded to ${API_URL})
+  --api-url URL    Specify a custom API URL (default: ${DEFAULT_API_URL})
   (Temp directory is using system temp: ${TEMP_DIR})
   -h, --help       Show this help message
   `);
