@@ -48,12 +48,6 @@ Several Node.js scripts are included to help with song management:
   - Requires Node.js 14 or later
   - Dependencies: `@clack/prompts`, `form-data`
   - Pre-built binaries available in `.bin` directory
-  
-- **upload-songs.js** - CLI tool for uploading individual songs
-  - Dependencies: `axios`, `form-data`
-  
-- **forward-radio.js** - CLI tool for forwarding songs from a local instance to a remote server
-  - Dependencies: `axios`
 
 The interactive `song-cli.js` tool handles the YouTube download and upload process in one step and is the recommended option for most users.
 
