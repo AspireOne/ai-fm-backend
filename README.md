@@ -100,56 +100,7 @@ This interactive tool will:
 
 Pre-built binaries are also available in the `.bin` directory for Windows, macOS, and Linux.
 
-### Manual Song Upload Tools
-
-If you need more fine-grained control, these additional scripts are available:
-
-1. **upload-songs.js** - Upload individual songs to the server:
-
-   ```bash
-   # Install dependencies
-   npm install axios form-data
-
-   # Upload a single song
-   node upload-songs.js path/to/song.mp3 block-id radio-id
-
-   # Upload multiple songs using a JSON config file
-   node upload-songs.js --bulk songs.json
-   ```
-
-   Example `songs.json` format:
-
-   ```json
-   {
-     "songs": [
-       {
-         "filePath": "path/to/song1.mp3",
-         "blockId": "block-123",
-         "radioId": "radio-456"
-       },
-       {
-         "filePath": "path/to/song2.mp3",
-         "blockId": "block-789",
-         "radioId": "radio-456"
-       }
-     ]
-   }
-   ```
-
-2. **forward-radio.js** - Download songs locally and forward them to a remote server:
-
-   ```bash
-   # Install dependencies
-   npm install axios
-
-   # First, preload all songs for a radio to download them locally
-   curl "http://localhost:5000/radios/your-radio-id/preload-all-songs"
-
-   # Then, use the script to upload songs from your 'downloaded_files' directory to the remote server
-   node forward-radio.js radio-id
-   ```
-
-## Why these tools exist
+## Manual Song Upload CLI tool & Why the tool exist
 
 Since many server hosting providers have IP addresses that YouTube blocks for automated downloads, you'll often need to:
 
