@@ -1,6 +1,6 @@
 {
   "name": "ai-fm-backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Non-stop pop FM! Backend",
   "main": "dist/index.js",
   "files": [
