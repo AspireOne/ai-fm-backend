@@ -11,6 +11,7 @@ Nonstop FM Backend provides a complete infrastructure for building personalized 
 - **Audio Management**: Handle song downloads, storage, and streaming
 - **WebSocket Communication**: Real-time control and state updates for connected clients
 - **YouTube Integration**: Download audio from YouTube for inclusion in radio stations
+- **CLI tool for song download/upload**: Automatically download and upload songs for a radio locally, to work around server IP blocks 
 
 The service is built on Fastify for high performance with a modular architecture that separates concerns and allows for easy extension.
 
