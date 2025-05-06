@@ -33,6 +33,8 @@ export type RadioState = {
     status: "downloading" | "generating" | "ready";
     progress?: number; // 0-100 percentage if available
   };
+  totalSongs: number;
+  totalDownloadedSongs: number;
 };
 
 export type ParsedRadio = {

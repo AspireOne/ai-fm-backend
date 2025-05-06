@@ -42,6 +42,24 @@ function createRadioState(
     throw new Error("Unknown block type");
   };
 
+  // Calculate song download statistics
+  const songStats = (() => {
+    // Get all song blocks
+    const songBlocks = radio.blocks.filter((block) => block.type === "song");
+    const totalSongs = songBlocks.length;
+
+    // Count downloaded songs
+    let downloadedSongs = 0;
+    for (const block of songBlocks) {
+      const audioPath = audioManagerService.getBlockAudioPath(block.id, "song");
+      if (isFileComplete(audioPath)) {
+        downloadedSongs++;
+      }
+    }
+
+    return { totalSongs, totalDownloadedSongs: downloadedSongs };
+  })();
+
   return {
     radioId: radio.id,
     radioTitle: radio.title,
@@ -62,6 +80,8 @@ function createRadioState(
     hasNext: blockIndex < radio.blocks.length - 1,
     hasPrev: blockIndex > 0,
     status: statusInfo,
+    totalSongs: songStats.totalSongs,
+    totalDownloadedSongs: songStats.totalDownloadedSongs,
   };
 }
 
@@ -69,13 +89,13 @@ function createRadioState(
  * Preloads the next N blocks' audio in the background
  */
 function preloadNextBlocks(
-  radio: ParsedRadio, 
-  currentBlockIndex: number, 
-  count: number = 2
+  radio: ParsedRadio,
+  currentBlockIndex: number,
+  count: number = 2,
 ): void {
   for (let i = 1; i <= count; i++) {
     const nextBlockIndex = currentBlockIndex + i;
-    
+
     // Skip if we've reached the end of the blocks
     if (nextBlockIndex >= radio.blocks.length) {
       break;

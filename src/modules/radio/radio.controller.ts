@@ -3,9 +3,13 @@ import radioCoreService from "./radio-core.service";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { createRadioInputSchema } from "./schemas/create-radio-input.schema";
 import { z } from "zod";
-import { FastifyRequest } from "fastify";
+// @formatter:off
+// prettier-ignore
+// @ts-ignore
+// This NEEDS to be here.
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { MultipartFile } from "@fastify/multipart";
-import { uploadSongsInputSchema } from "./schemas/upload-songs-input.schema";
+// @formatter:on
 import audioManagerService from "../audio-file-manager/audio-file-manager.service";
 import fs from "fs";
 
