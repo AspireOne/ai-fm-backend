@@ -67,10 +67,46 @@ async function getRadios(): Promise<RadiosResponse> {
   }));
 }
 
+/**
+ * Cleans a YouTube URL to keep only the video ID parameter
+ * @param url The original YouTube URL
+ * @returns A cleaned URL with only the video ID
+ */
+function cleanYoutubeUrl(url: string): string {
+  try {
+    // Handle HTML-encoded ampersands
+    url = url.replace(/&amp;/g, '&');
+    
+    // Parse the URL
+    const parsedUrl = new URL(url);
+    
+    // Extract the video ID parameter
+    const videoId = parsedUrl.searchParams.get('v');
+    if (!videoId) {
+      return url; // No video ID found, return unchanged
+    }
+    
+    // Preserve the original protocol, hostname and path
+    // but only keep the 'v' query parameter
+    const cleanUrl = new URL(url);
+    
+    // Clear all search parameters
+    cleanUrl.search = '';
+    
+    // Add back only the video ID parameter
+    cleanUrl.searchParams.set('v', videoId);
+    
+    return cleanUrl.toString();
+  } catch (error) {
+    console.error(`Error cleaning YouTube URL: ${error}`);
+    return url; // Return original URL if parsing fails
+  }
+}
+
 async function createRadio(props: CreateRadioInputSchema) {
   // Skip title fetching as YT blocked yt-dlp, set all titles to null
   const songsWithNullTitles = props.songs.map(song => ({
-    url: song.url,
+    url: cleanYoutubeUrl(song.url),
     title: null
   }));
   
