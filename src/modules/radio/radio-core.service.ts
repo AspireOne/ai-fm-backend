@@ -73,6 +73,12 @@ function cleanYoutubeUrl(url: string): string {
     // Parse the URL
     const parsedUrl = new URL(url);
 
+    // Convert music.youtube.com to youtube.com
+    if (parsedUrl.hostname === "music.youtube.com") {
+      parsedUrl.hostname = "youtube.com";
+      url = parsedUrl.toString();
+    }
+
     // Extract the video ID parameter
     const videoId = parsedUrl.searchParams.get("v");
     if (!videoId) {
