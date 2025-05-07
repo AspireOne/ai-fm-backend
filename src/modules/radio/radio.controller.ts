@@ -62,48 +62,6 @@ export function registerRadioController(_fastify: FastifyInstance) {
     },
   });
 
-  // Endpoint to download songs from radio and forward to another server
-  fastify.route({
-    method: ["GET", "POST"],
-    url: "/radios/:radioId/forward-to-server",
-    schema: {
-      params: z.object({
-        radioId: z.string(),
-      }),
-      querystring: z.object({
-        serverUrl: z.string().url("Must be a valid URL"),
-      }),
-    },
-    handler: async (request, reply) => {
-      const { radioId } = request.params as { radioId: string };
-      const { serverUrl } = request.query as { serverUrl: string };
-
-      try {
-        // Start the process of downloading and forwarding songs
-        const result = await radioCoreService.downloadAndForwardSongs(radioId, serverUrl);
-
-        return {
-          radioId,
-          serverUrl,
-          status: "complete",
-          ...result,
-        };
-      } catch (error) {
-        console.error(
-          `Error forwarding songs for radio ${radioId} to ${serverUrl}:`,
-          error,
-        );
-        reply.status(500);
-        return {
-          radioId,
-          serverUrl,
-          status: "error",
-          message: error instanceof Error ? error.message : "Unknown error occurred",
-        };
-      }
-    },
-  });
-
   // Endpoint to get all blocks for a radio
   fastify.get("/radios/:radioId/blocks", {
     schema: {
@@ -211,7 +169,7 @@ export function registerRadioController(_fastify: FastifyInstance) {
           radioId,
           fileBuffer: buffer,
           filename: filename,
-          title: title
+          title: title,
         });
 
         // Save the uploaded songs

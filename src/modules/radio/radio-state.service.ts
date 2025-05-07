@@ -102,6 +102,15 @@ function preloadNextBlocks(
     }
 
     const nextBlock = radio.blocks[nextBlockIndex];
+    
+    // Skip song blocks - they won't be downloaded automatically
+    if (nextBlock.type === "song") {
+      console.log(
+        `[Radio ${radio.id}] Skipping preload of song block (${nextBlockIndex}) - songs must be uploaded manually`,
+      );
+      continue;
+    }
+    
     const nextAudioPath = audioManagerService.getBlockAudioPath(
       nextBlock.id,
       nextBlock.type,
@@ -181,6 +190,25 @@ function ensureBlockAudioExists(
 
   // If audio is complete, we're done
   if (isAudioComplete) return true;
+
+  // Special handling for song blocks - don't attempt to download them
+  if (currentBlock.type === "song") {
+    console.log(
+      `[Radio ${radioId}] Song block ${blockIndex} needs to be uploaded manually - broadcasting status`
+    );
+    
+    // Send a status to indicate the song needs to be uploaded
+    const songMissingState = createRadioState(radio, blockIndex, {
+      status: "downloading", // Using "downloading" status to indicate it's missing
+      progress: 0, // 0 progress to show it needs to be uploaded
+    });
+    
+    // Broadcast the status
+    websocketService.broadcastUpdate(radioId, songMissingState);
+    
+    // Return false to indicate audio is not ready
+    return false;
+  }
 
   // Check if there's already an ongoing operation for this block
   const existingOperation = ongoingOperations.get(operationKey);
