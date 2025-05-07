@@ -1,13 +1,6 @@
 #!/usr/bin/env node
 
-const {
-  intro,
-  outro,
-  select,
-  isCancel,
-  spinner,
-  note,
-} = require("@clack/prompts");
+const { intro, outro, select, isCancel, spinner, note } = require("@clack/prompts");
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
@@ -32,16 +25,16 @@ const colors = {
 function parseArgs() {
   const args = process.argv.slice(2);
   const options = {};
-  
+
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    
-    if (arg === '--api-url' && i + 1 < args.length) {
+
+    if (arg === "--api-url" && i + 1 < args.length) {
       options.apiUrl = args[i + 1];
       i++; // Skip the next argument as it's the value
     }
   }
-  
+
   return options;
 }
 
@@ -99,27 +92,36 @@ function cleanupTempDir() {
   if (fs.existsSync(TEMP_DIR)) {
     try {
       // Ensure the path has 'ai-fm-temp' in it as a safety check
-      if (!TEMP_DIR.includes('ai-fm-temp')) {
-        console.log(`Safety check: Not cleaning temp directory ${TEMP_DIR} as it doesn't contain 'ai-fm-temp'`);
+      if (!TEMP_DIR.includes("ai-fm-temp")) {
+        console.log(
+          `Safety check: Not cleaning temp directory ${TEMP_DIR} as it doesn't contain 'ai-fm-temp'`,
+        );
         return;
       }
-      
+
       // Read all files in the directory
       const files = fs.readdirSync(TEMP_DIR);
       let filesDeleted = 0;
-      
-      // Delete each file (only .mp3 files for extra safety)
+
+      // Delete each file (.mp3 and .info.json files for safety)
       for (const file of files) {
         const filePath = path.join(TEMP_DIR, file);
-        if (fs.statSync(filePath).isFile() && file.endsWith('.mp3')) {
+        if (
+          fs.statSync(filePath).isFile() &&
+          (file.endsWith(".mp3") || file.endsWith(".info.json"))
+        ) {
           fs.unlinkSync(filePath);
           filesDeleted++;
         }
       }
-      
-      console.log(`Cleaned up temporary files: ${filesDeleted} files deleted from ${TEMP_DIR}`);
+
+      console.log(
+        `Cleaned up temporary files: ${filesDeleted} files deleted from ${TEMP_DIR}`,
+      );
     } catch (error) {
-      console.error(colors.yellow(`Warning: Could not clean up temp directory: ${error.message}`));
+      console.error(
+        colors.yellow(`Warning: Could not clean up temp directory: ${error.message}`),
+      );
     }
   }
 }
@@ -128,7 +130,7 @@ function cleanupTempDir() {
 function isCommandAvailable(command) {
   try {
     // Different check methods based on command
-    if (command === 'ffmpeg') {
+    if (command === "ffmpeg") {
       // For ffmpeg, try different approaches
       try {
         // Try version flag first (most common)
@@ -164,15 +166,17 @@ function isCommandAvailable(command) {
 // Show yt-dlp installation instructions
 function showYtDlpInstructions() {
   console.log(colors.yellow("\nyt-dlp installation instructions:"));
-  
+
   if (isWindows) {
     console.log(colors.cyan("\nFor Windows:"));
     console.log("\nOption 1 - Using pip (Python package manager):");
-    console.log("  > python3 -m pip install -U \"yt-dlp[default]\"");
+    console.log('  > python3 -m pip install -U "yt-dlp[default]"');
     console.log("Option 2 - Using winget:");
     console.log("  > winget install -e --id yt-dlp.yt-dlp");
     console.log("Option 3 - Manual download:");
-    console.log("  1. Download from https://github.com/yt-dlp/yt-dlp/releases/tag/2025.04.30");
+    console.log(
+      "  1. Download from https://github.com/yt-dlp/yt-dlp/releases/tag/2025.04.30",
+    );
     console.log("  2. Rename the file to yt-dlp.exe");
     console.log("  3. Move it to a directory in your PATH (or add its location to PATH)");
   } else if (os.platform() === "darwin") {
@@ -181,19 +185,25 @@ function showYtDlpInstructions() {
   } else if (os.platform() === "linux") {
     console.log(colors.cyan("\nFor Linux:"));
     console.log("Option 1 - Using pip (Python package manager):");
-    console.log("  $ python3 -m pip install -U \"yt-dlp[default]\"");
+    console.log('  $ python3 -m pip install -U "yt-dlp[default]"');
     console.log("\nOption 2 - Direct download:");
-    console.log("  $ curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp");
+    console.log(
+      "  $ curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp",
+    );
     console.log("  $ chmod a+rx ~/.local/bin/yt-dlp");
   }
-  
-  console.log(colors.yellow("\nAfter installing, make sure yt-dlp is in your PATH and restart this script."));
+
+  console.log(
+    colors.yellow(
+      "\nAfter installing, make sure yt-dlp is in your PATH and restart this script.",
+    ),
+  );
 }
 
 // Show ffmpeg installation instructions
 function showFfmpegInstructions() {
   console.log(colors.yellow("\nffmpeg installation instructions:"));
-  
+
   if (isWindows) {
     console.log(colors.cyan("\nFor Windows:"));
     console.log("Option 1 - Using winget (probably as admin and restart terminal):");
@@ -201,19 +211,21 @@ function showFfmpegInstructions() {
     console.log("\nOption 2 - Manual download:");
     console.log("  1. Download ffmpeg from https://ffmpeg.org/download.html");
     console.log("  2. Extract the archive and add the bin folder to your PATH");
-  } 
-  else if (os.platform() === "darwin") {
+  } else if (os.platform() === "darwin") {
     console.log(colors.cyan("\nFor macOS:"));
     console.log("  $ brew install ffmpeg");
-  } 
-  else if (os.platform() === "linux") {
+  } else if (os.platform() === "linux") {
     console.log(colors.cyan("\nFor Linux (Ubuntu/Debian):"));
     console.log("  $ sudo apt install ffmpeg");
     console.log(colors.cyan("\nFor other Linux distributions:"));
     console.log("  Please use your distribution's package manager to install ffmpeg");
   }
-  
-  console.log(colors.yellow("\nAfter installing, make sure ffmpeg is in your PATH and restart this script."));
+
+  console.log(
+    colors.yellow(
+      "\nAfter installing, make sure ffmpeg is in your PATH and restart this script.",
+    ),
+  );
 }
 
 // Check if required tools are available
@@ -241,53 +253,17 @@ function checkRequiredTools() {
   return allToolsAvailable;
 }
 
-// Extract title from YouTube using yt-dlp
-async function getYoutubeTitle(youtubeUrl) {
-  return new Promise((resolve, reject) => {
-    console.log(`Fetching title for ${youtubeUrl}`);
-    
-    // Command arguments for yt-dlp to get just the title
-    const args = [
-      youtubeUrl,
-      "--get-title",
-      "--no-download",
-      "--skip-download"
-    ];
-    
-    // Spawn the yt-dlp process
-    const process = spawn("yt-dlp", args);
-    
-    let stdout = "";
-    let stderr = "";
-    
-    // Capture stdout for the title
-    process.stdout.on("data", (data) => {
-      stdout += data.toString();
-    });
-    
-    // Capture stderr for error handling
-    process.stderr.on("data", (data) => {
-      stderr += data.toString();
-    });
-    
-    // Handle process completion
-    process.on("close", (code) => {
-      if (code === 0) {
-        const title = stdout.trim();
-        console.log(`Title fetched: ${title}`);
-        resolve(title);
-      } else {
-        console.error(`Title fetch failed: ${stderr}`);
-        resolve(null); // Return null instead of rejecting to handle gracefully
-      }
-    });
-    
-    // Handle process spawn errors
-    process.on("error", (err) => {
-      console.error(`Failed to start yt-dlp for title: ${err.message}`);
-      resolve(null);
-    });
-  });
+// Helper function to extract title from info JSON
+function extractTitleFromInfoJson(infoJsonPath) {
+  try {
+    if (fs.existsSync(infoJsonPath)) {
+      const infoData = JSON.parse(fs.readFileSync(infoJsonPath, "utf8"));
+      return infoData.title || null;
+    }
+  } catch (error) {
+    console.error(`Error reading info JSON: ${error.message}`);
+  }
+  return null;
 }
 
 // Download song using yt-dlp
@@ -303,6 +279,7 @@ async function downloadSong(youtubeUrl, outputPath) {
       "mp3",
       "--audio-quality",
       "0", // Best quality
+      "--write-info-json", // Generate metadata JSON file
       "-o",
       outputPath,
     ];
@@ -348,7 +325,9 @@ async function downloadSong(youtubeUrl, outputPath) {
 // Upload song to server
 async function uploadSong(filePath, blockId, radioId, title) {
   try {
-    console.log(`Uploading song for block ${blockId}${title ? ` with title "${title}"` : ''}`);
+    console.log(
+      `Uploading song for block ${blockId}${title ? ` with title "${title}"` : ""}`,
+    );
 
     // Use the old FormData module with proper node-formdata support
     const form = new FormData();
@@ -372,28 +351,29 @@ async function uploadSong(filePath, blockId, radioId, title) {
     return new Promise((resolve, reject) => {
       const url = new URL(`${API_URL}/radios/upload-songs`);
       const options = {
-        method: 'POST',
+        method: "POST",
         headers: formHeaders,
         host: url.hostname,
-        port: url.port || (url.protocol === 'https:' ? 443 : 80),
+        port: url.port || (url.protocol === "https:" ? 443 : 80),
         path: url.pathname,
-        protocol: url.protocol
+        protocol: url.protocol,
       };
 
       // Create the appropriate request object based on protocol
-      const req = url.protocol === 'https:' 
-        ? require('https').request(options)
-        : require('http').request(options);
-      
+      const req =
+        url.protocol === "https:"
+          ? require("https").request(options)
+          : require("http").request(options);
+
       // Handle response
-      req.on('response', (res) => {
+      req.on("response", (res) => {
         // Get the response data
-        let data = '';
-        res.on('data', (chunk) => {
+        let data = "";
+        res.on("data", (chunk) => {
           data += chunk;
         });
-        
-        res.on('end', () => {
+
+        res.on("end", () => {
           if (res.statusCode >= 200 && res.statusCode < 300) {
             try {
               console.log(`Uploaded song for block ${blockId}`);
@@ -407,12 +387,12 @@ async function uploadSong(filePath, blockId, radioId, title) {
           }
         });
       });
-      
+
       // Handle request errors
-      req.on('error', (err) => {
+      req.on("error", (err) => {
         reject(err);
       });
-      
+
       // Pipe the form data to the request
       form.pipe(req);
     });
@@ -511,7 +491,7 @@ async function main() {
       `\nFetching blocks for radio: ${selectedRadio.title} (${selectedRadio.id})...`,
     );
     const radioData = await fetchRadioBlocks(selectedRadio.id);
-    
+
     // Filter song blocks
     const songBlocks = radioData.blocks.filter((block) => block.type === "song");
     console.log(`Found ${songBlocks.length} song blocks total`);
@@ -529,7 +509,7 @@ async function main() {
       note(colors.green("All songs are already downloaded!"), "Complete");
       process.exit(0);
     }
-    
+
     // Only check for required tools if we have songs to download
     const s = spinner();
     s.start("Checking for required tools...");
@@ -539,9 +519,9 @@ async function main() {
     if (!toolsAvailable) {
       note(
         colors.red(
-          "Required tools are missing. Please install yt-dlp and ffmpeg following the instructions above."
+          "Required tools are missing. Please install yt-dlp and ffmpeg following the instructions above.",
         ),
-        "Error"
+        "Error",
       );
       process.exit(1);
     }
@@ -565,41 +545,43 @@ async function main() {
         }
 
         console.log(
-          `\nProcessing song ${index + 1}/${songsToProcess.length}: ${block.yt.title || "Untitled"}`,
+          `\nProcessing song ${index + 1}/${songsToProcess.length}${block.yt.title ? `: ${block.yt.title}` : ""}`,
         );
 
         // Generate output path for the downloaded file
         const outputPath = path.join(TEMP_DIR, `${block.id}.mp3`);
-        
-        // First get the title using yt-dlp
-        let title = null;
-        const titleSpinner = spinner();
-        titleSpinner.start("Fetching song title from YouTube...");
-        try {
-          title = await getYoutubeTitle(block.yt.url);
-          if (title) {
-            titleSpinner.stop(`Title fetched: "${title}"`);
-          } else {
-            titleSpinner.stop("Could not fetch title");
-          }
-        } catch (error) {
-          titleSpinner.stop("Failed to fetch title");
-          console.error(colors.yellow(`Error fetching title: ${error.message}`));
-        }
 
-        // Download the song
+        // Download the song (which will also write the info JSON)
         const s = spinner();
         s.start("Downloading song from YouTube...");
         await downloadSong(block.yt.url, outputPath);
         stats.downloaded++;
         s.stop("Download complete");
 
+        // Get the title from the generated JSON file
+        let title = null;
+        const infoJsonPath = `${outputPath}.info.json`;
+        if (fs.existsSync(infoJsonPath)) {
+          title = extractTitleFromInfoJson(infoJsonPath);
+          if (title) {
+            console.log(`Found title from metadata: "${title}"`);
+          } else {
+            console.log(colors.yellow(`No title found in metadata file`));
+          }
+          // Clean up the info JSON file
+          try {
+            fs.unlinkSync(infoJsonPath);
+          } catch (err) {
+            console.log(`Note: Could not delete info JSON file: ${err.message}`);
+          }
+        }
+
         // Upload the song with title if available
-        s.start(`Uploading song to server${title ? ' with title' : ''}...`);
+        s.start(` Uploading song to server${title ? ` with title "${title}"` : ""}...`);
         await uploadSong(outputPath, block.id, selectedRadio.id, title);
         stats.uploaded++;
 
-        s.stop("Upload complete");
+        s.stop(colors.green("Upload complete"));
 
         // Remove the temporary file
         fs.unlinkSync(outputPath);
@@ -641,9 +623,12 @@ async function main() {
       output: process.stdout,
     });
 
-    rl.question("\nPress ENTER to exit... (or do whatever the fuck you want im not your mom)", () => {
-      rl.close();
-    });
+    rl.question(
+      "\nPress ENTER to exit... (or do whatever the fuck you want im not your mom)",
+      () => {
+        rl.close();
+      },
+    );
   }
 }
 
@@ -683,7 +668,7 @@ Options:
 }
 
 // Run the main function
-main().catch(error => {
+main().catch((error) => {
   console.error(colors.red(`Fatal error: ${error.message}`));
   // Ensure cleanup happens even on unhandled errors
   cleanupTempDir();

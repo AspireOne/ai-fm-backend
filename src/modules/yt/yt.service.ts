@@ -10,11 +10,13 @@ const execPromise = promisify(exec);
  * Downloads audio from a YouTube URL and saves it as an MP3 file
  * @param youtubeUrl The YouTube URL to download from
  * @param outputPath The full path where the MP3 file should be saved
+ * @param writeInfoJson Whether to write metadata to a JSON file (default: false)
  * @returns A promise that resolves to the output path when download is complete
  */
 async function downloadYoutubeAudio(
   youtubeUrl: string,
   outputPath: string,
+  writeInfoJson: boolean = false,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     // Command arguments for yt-dlp
@@ -25,14 +27,18 @@ async function downloadYoutubeAudio(
       "mp3",
       "--audio-quality",
       "0", // Best quality
-      "-o",
-      outputPath,
-      // Add other options as needed
     ];
 
-    console.log(
-      `Running yt-dlp with URL: ${youtubeUrl}`,
-    );
+    // Conditionally add info JSON flag
+    if (writeInfoJson) {
+      args.push("--write-info-json"); // Generate metadata JSON file
+    }
+
+    // Add output path
+    args.push("-o", outputPath);
+    // Add other options as needed
+
+    console.log(`Running yt-dlp with URL: ${youtubeUrl}`);
 
     // Spawn the yt-dlp process
     const process = spawn("yt-dlp", args);
@@ -65,69 +71,6 @@ async function downloadYoutubeAudio(
       reject(new Error(`Failed to start yt-dlp: ${err.message}`));
     });
   });
-}
-
-async function fetchTitles(
-  songs: { url: string }[],
-  props: { maxConcurrent: number } = { maxConcurrent: 5 },
-): Promise<{ url: string; title: string | null }[]> {
-  const results: { url: string; title: string | null }[] = [];
-
-  // Create a queue of songs
-  const queue = [...songs];
-  const inProgress = new Set<Promise<void>>();
-
-  // Process the queue until it's empty
-  while (queue.length > 0 || inProgress.size > 0) {
-    // Fill up to maxConcurrent requests
-    while (queue.length > 0 && inProgress.size < props.maxConcurrent) {
-      const song = queue.shift()!;
-
-      // Create the promise
-      const processTask = async () => {
-        try {
-          let info;
-          try {
-            // TODO: Move to yt-dlp from system (like in downloadYoutubeAudio).
-            //  This works for now.
-            info = await ytdl.getBasicInfo(song.url);
-            if (!info?.videoDetails?.title) {
-              console.error(`No title fetched for ${song.url}`);
-              info = null;
-            }
-          } catch (error) {
-            console.error(`Error fetching basic info for ${song.url}:`, error);
-            info = null;
-          }
-
-          results.push({
-            url: song.url,
-            title: info?.videoDetails?.title || null,
-          });
-        } catch (error) {
-          console.error(`Error fetching title for ${song.url}:`, error);
-          // Add with a placeholder title if there's an error
-          results.push({
-            url: song.url,
-            title: null,
-          });
-        }
-      };
-
-      // Create the promise and store a reference to it
-      const fetchPromise = processTask().finally(() => {
-        inProgress.delete(fetchPromise);
-      });
-      inProgress.add(fetchPromise);
-    }
-
-    // Wait for at least one task to complete before continuing
-    if (inProgress.size > 0) {
-      await Promise.race(inProgress);
-    }
-  }
-
-  return results;
 }
 
 /**
@@ -198,7 +141,6 @@ async function checkFfmpegAvailability(): Promise<void> {
 
 export default {
   downloadYoutubeAudio,
-  fetchTitles,
   checkYtDlpAvailability,
   checkFfmpegAvailability,
 };
