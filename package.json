@@ -1,18 +1,18 @@
 {
-  "name": "ai-fm-backend",
+  "name": "ai-fm-cli",
   "version": "2.0.0",
   "description": "Non-stop pop FM! Backend",
   "main": "dist/index.js",
   "files": [
-    "dist"
+    "dist",
+    "bundled-cli.js"
   ],
   "engines": {
     "pnpm": "9.x",
     "node": ">=22.0.0"
   },
   "bin": {
-    "fm": "dist/index.js",
-    "song-cli": "./song-cli.js"
+    "aifm": "./bundled-cli.js"
   },
   "scripts": {
     "start": "npx tsx src/index.ts --",
@@ -36,15 +36,11 @@
     "migrate:latest": "npx tsx src/helpers/migrate-cli.ts latest && pnpm db:sync",
     "migrate:up": "npx tsx src/helpers/migrate-cli.ts up && pnpm db:sync",
     "migrate:down": "npx tsx src/helpers/migrate-cli.ts down && pnpm db:sync",
-    "prepublishOnly": "npm run build && npm run bundle-package-cli",
+    "prepublishOnly": "npm run build && npm run bundle-cli",
     "publish": "npm publish",
     "publish:patch": "npm version patch && npm publish",
     "publish:minor": "npm version minor && npm publish",
     "publish:major": "npm version major && npm publish"
-  },
-  "pkg": {
-    "output": "packages",
-    "out-path": "packages"
   },
   "publishConfig": {
     "access": "public"
