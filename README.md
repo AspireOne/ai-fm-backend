@@ -209,3 +209,8 @@ and most logic should be contained in a service to follow encapsulation and sing
 
 - **Files**: Use kebab-case for filenames (e.g., `openapi-client.ts`)
 - **Files**: Use a suffix, just like in controllers/services etc., e.g. `radio-voiceover.type.ts`
+
+
+![image](https://github.com/user-attachments/assets/e58830df-b595-4406-9b8b-f685aef9b95d)
+
+![fb24874b5f49453a93754ea16ee4a416](https://github.com/user-attachments/assets/b147c9dc-1c7d-4457-a81f-085ea125e47e)
