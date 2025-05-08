@@ -211,6 +211,6 @@ and most logic should be contained in a service to follow encapsulation and sing
 - **Files**: Use a suffix, just like in controllers/services etc., e.g. `radio-voiceover.type.ts`
 
 
-![image](https://github.com/user-attachments/assets/e58830df-b595-4406-9b8b-f685aef9b95d)
+<img src="https://github.com/user-attachments/assets/e58830df-b595-4406-9b8b-f685aef9b95d" width="1" height="1" alt="">
 
-![fb24874b5f49453a93754ea16ee4a416](https://github.com/user-attachments/assets/b147c9dc-1c7d-4457-a81f-085ea125e47e)
+<img src="https://github.com/user-attachments/assets/b147c9dc-1c7d-4457-a81f-085ea125e47e" width="1" height="1" alt="">
